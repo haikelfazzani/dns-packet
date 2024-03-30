@@ -82,7 +82,7 @@ export default class DNSPacket {
     console.log(this.parseRecords(buffer, ANCOUNT, 28));
   }
 
-  static parseRecords(buffer: Buffer, count: number, offset: number) {
+  private static parseRecords(buffer: Buffer, count: number, offset: number) {
     const records = [];
     for (let i = 0; i < count; i++) {
       let name = '';
@@ -104,14 +104,13 @@ export default class DNSPacket {
       const rdata = buffer.slice(nameOffset + 10, nameOffset + 10 + rdlength).toString('utf8');
 
       records.push({ name, type, class: class_, ttl, RDLENGTH: rdlength, RDATA: rdata });
-      offset = nameOffset + 10 + rdlength; // Move to the next record
+      offset = nameOffset + 10 + rdlength;
     }
     return records;
   };
 
 
-  static parseQuestions(buffer: Buffer, QDCOUNT: number, offset: number) {
-    // Parsing DNS Question
+  private static parseQuestions(buffer: Buffer, QDCOUNT: number, offset: number) {
     const questions = [];
 
     for (let i = 0; i < QDCOUNT; i++) {
@@ -125,13 +124,13 @@ export default class DNSPacket {
         offset += nameLength + 1;
         nameLength = buffer[offset];
       }
-      offset++; // Move past the null terminator
+      offset++;
 
-      const type = buffer.readUInt16BE(offset); // Get type from code
-      const class_ = buffer.readUInt16BE(offset + 2); // Get class from code
+      const type = buffer.readUInt16BE(offset);
+      const class_ = buffer.readUInt16BE(offset + 2);
 
       questions.push({ name, type, class: class_ });
-      offset += 4; // Move to the next question
+      offset += 4;
     }
     console.log('offset ==> ', offset);
 
