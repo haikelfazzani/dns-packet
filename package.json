@@ -1,33 +1,26 @@
 {
-  "name": "dns-packet",
+  "name": "dns-packet-ts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node/Browser module for encoding and decoding DNS packet",
   "type": "module",
   "author": "Haikel Fazzani",
-  "engines": {
-    "node": ">= 20 < 21"
-  },
-
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
-    "start": "node ./build/src/main.js",
-    "clean": "rimraf coverage build tmp",
-    "build": "tsc -p tsconfig.json",
-    "build:watch": "tsc -w -p tsconfig.json",
-    "test": "node ./build/__tests__/main.test.js"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "node tests/index.js"
   },
-  "license": "Apache-2.0",
   "devDependencies": {
-    "tslib": "~2.6",
-    "axios": "^1.6.7",
-    "dns-packet": "^5.6.1",
     "@types/dns-packet": "^5.6.5",
     "@types/node": "~20",
-    "nodemon": "^3.1.0",
-    "rimraf": "~5.0",
-    "ts-api-utils": "~1.0",
-    "typescript": "~5.3"
-  },
-  "volta": {
-    "node": "20.10.0"
+    "axios": "^1.6.7",
+    "dns-packet": "^5.6.1",
+    "esbuild": "^0.20.2",
+    "rollup": "^4.13.2",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-esbuild": "^6.1.1",
+    "typescript": "^5.2.2"
   }
 }

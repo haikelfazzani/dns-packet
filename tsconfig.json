@@ -1,28 +1,25 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
+    // "useDefineForClassFields": true,
     "lib": [
       "ESNext"
     ],
-    "moduleResolution": "NodeNext",
-    "rootDir": ".",
-    "outDir": "build",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
-    "importHelpers": true,
-    "alwaysStrict": false,
-    "sourceMap": false,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitAny": false,
-    "noImplicitThis": false,
-    "strictNullChecks": false
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
   },
-  "include": [
-    "src/**/*",
-    "__tests__/**/*"
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }
