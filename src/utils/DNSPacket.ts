@@ -4,7 +4,7 @@ import PacketUtil from './PacketUtil.js';
 
 export default class DNSPacket {
 
-  static decodeBufferOffset = 12;
+  static decodeBufferDataOffset = 12;
 
   private static formatQuery(jsonPacket: DNSQuery) {
     const question = jsonPacket.questions[0];
@@ -80,16 +80,16 @@ export default class DNSPacket {
 
     // console.log(id, flags, QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT);
 
-    const questions = this.decodeQuestions(buffer, QDCOUNT, this.decodeBufferOffset);
-    const answers = this.parseRecords(buffer, ANCOUNT, this.decodeBufferOffset);
-    const authorities = this.parseRecords(buffer, NSCOUNT, this.decodeBufferOffset);
-    const additionals = this.parseRecords(buffer, ARCOUNT, this.decodeBufferOffset);    
-    
+    const questions = this.decodeQuestions(buffer, QDCOUNT, this.decodeBufferDataOffset);
+    const answers = this.decodeRecords(buffer, ANCOUNT, this.decodeBufferDataOffset);
+    const authorities = this.decodeRecords(buffer, NSCOUNT, this.decodeBufferDataOffset);
+    const additionals = this.decodeRecords(buffer, ARCOUNT, this.decodeBufferDataOffset);
+
 
     return { id, flags, questions, answers, authorities, additionals }
   }
 
-  private static parseRecords(buffer: Buffer, count: number, offset: number) {
+  private static decodeRecords(buffer: Buffer, count: number, offset: number) {
     const records = [];
     for (let i = 0; i < count; i++) {
       let name = '';
@@ -104,7 +104,7 @@ export default class DNSPacket {
         nameLength = buffer[nameOffset - 1];
       }
 
-      const rtype = PacketUtil.getRType(buffer.readUInt16BE(nameOffset));
+      const rtype = buffer.readUInt16BE(nameOffset);
       const class_ = buffer.readUInt16BE(nameOffset + 2);
       const ttl = buffer.readUInt32BE(nameOffset + 4);
       const rdlength = buffer.readUInt16BE(nameOffset + 8);
@@ -115,11 +115,11 @@ export default class DNSPacket {
       offset = nameOffset + 10 + rdlength;
     }
 
-    this.decodeBufferOffset = offset;
+    this.decodeBufferDataOffset = offset;
     return records;
   };
 
-  private static decodeRData(rtype, buffer, offset) {
+  private static decodeRData(rtype: number, buffer: Buffer, offset: number) {
     const rdata = [];
     for (let i = 0; i < 4; i++) {
       rdata.push(buffer[offset + i]);
@@ -151,8 +151,8 @@ export default class DNSPacket {
       questions.push({ name, type, class: class_ });
       offset += 4;
     }
-    
-    this.decodeBufferOffset = offset;
+
+    this.decodeBufferDataOffset = offset;
     return questions;
   }
 }
