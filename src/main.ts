@@ -18,17 +18,7 @@ const dnsQuery = {
   id: 1,
   type: 'query',
   flags: 256,
-  flag_qr: false,
-  opcode: 'QUERY',
-  flag_aa: true,
-  flag_tc: false,
-  flag_rd: true,
-  flag_ra: true,
-  flag_z: false,
-  flag_ad: false,
-  flag_cd: false,
-  rcode: 'NOERROR',
-  questions: [{ name: 'google.com', type: 'CNAME', class: 'IN' }]
+  questions: [{ name: 'google.com', type: 'TXT', class: 'IN' }]
 } as any;
 
 const dr = {
@@ -46,7 +36,32 @@ const dr = {
   flag_cd: false,
   rcode: 'NOERROR',
   questions: [{ name: 'google.com', type: 'CNAME', class: 'IN' }],
-  answers: [],
+  answers: [
+    {
+      name: 'google.com',
+      type: 'A',
+      ttl: 244,
+      class: 'IN',
+      flush: false,
+      data: '142.250.201.46'
+    },
+    {
+      name: 'google2.com',
+      type: 'A',
+      ttl: 244,
+      class: 'IN',
+      flush: false,
+      data: '0123:4567:89ab:cdef:0123:4567:89ab:cdef'
+    },
+    {
+      name: 'google.com',
+      type: 'NS',
+      ttl: 338315,
+      class: 'IN',
+      flush: false,
+      data: 'ns2.google.com'
+    }
+  ],
   authorities: [
     {
       name: 'google.com',
@@ -95,11 +110,11 @@ const dnsResponse = {
   //   responseType: 'arraybuffer'
   // });
 
-  // console.log(dnsPacket.decode(rdr.data).authorities);
+  // console.log(dnsPacket.decode(rdr.data).answers);
 
 
   const enc = dnsPacket.encode(dr);
-  // console.log(enc);
+  //  console.log(dnsPacket.decode(enc));
 
   console.log(DNSPacket.decode(enc));
 })()
