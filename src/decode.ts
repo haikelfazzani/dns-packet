@@ -1,36 +1,31 @@
+import { DNSResponse } from "./types";
 import getQR from "./utils/getQR";
 import getRCODE from "./utils/getRCODE";
+import getRClass from "./utils/getRClass";
+import getRType from "./utils/getRType";
 
-function readQuestion(view: DataView, offset: number) {
+function decodeName(view: DataView, offset: number) {
   let position = offset;
-  let domain = '';
+  let domainName = '';
 
   while (true) {
-    const labelLength = view.getUint8(position++);
-    console.log('labelLength ==> ',labelLength, position);
-    
-    if (labelLength === 0) break;
-    if (domain.length !== 0) domain += '.';
+    const partLen = view.getUint8(position++);
 
-    for (let i = 0; i < labelLength; i++) {
-      domain += String.fromCharCode(view.getUint8(position + i));
+    if (partLen === 0) break;
+    if (domainName.length !== 0) domainName += '.';
+
+    for (let i = 0; i < partLen; i++) {
+      domainName += String.fromCharCode(view.getUint8(position + i));
     }
 
-    position += labelLength;
+    position += partLen;
   }
-
-  const TYPE = view.getUint16(position);
-  const CLASS = view.getUint16(position + 2);
-
-  return {
-    NAME: domain,
-    TYPE,
-    CLASS,
-    length: position - offset + 4
-  };
+  return { name: domainName, position }
 }
 
-export default function decode(buffer: ArrayBuffer) {
+export default function decode(buffer: ArrayBuffer): DNSResponse {
+
+  let offset = 12;
 
   const view = new DataView(buffer)
   const id = view.getUint16(0, true)
@@ -42,27 +37,32 @@ export default function decode(buffer: ArrayBuffer) {
   const ARCOUNT = view.getUint16(10)
 
   const flags = {
-    QR: (flagsVal >> 15) & 0x1,
+    QR: getQR((flagsVal >> 15) & 0x1),
     Opcode: (flagsVal >> 11) & 0xF,
     AA: (flagsVal >> 10) & 0x1,
     TC: (flagsVal >> 9) & 0x1,
     RD: (flagsVal >> 8) & 0x1,
     RA: (flagsVal >> 7) & 0x1,
     Z: (flagsVal >> 4) & 0x7,
-    RCODE: flagsVal & 0xF
+    RCODE: getRCODE(flagsVal & 0xF)
   };
 
-  const questions = readQuestion(view, 12);
-  console.log(questions);
+  // decode questions
+  const { position, name } = decodeName(view, offset)
+  const question = { NAME: name, TYPE: view.getUint16(position), CLASS: view.getUint16(position + 2) };
 
+  offset = position - offset + 4;
+
+  // decode answers
+
+  // decode authorities
 
   return {
     id,
-    flags: {
-      ...flags,
-      QR: getQR(flags.QR),
-      RCODE: getRCODE(flags.RCODE)
-    },
-    questions: []
+    flags,
+    questions: [{ NAME: question.NAME, CLASS: getRClass(question.CLASS), TYPE: getRType(question.TYPE) }],
+    answers: [],
+    authorities: [],
+    additionals: [],
   };
 }

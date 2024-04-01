@@ -1,23 +1,23 @@
-import {encode,decode} from '../dist/index.mjs';
+import { encode, decode } from '../dist/index.mjs';
 import axios from 'axios';
 import dnsPacket from 'dns-packet';
 
 const pk = {
-  id: 1152,
+  id: 153,
   flags: {
     QR: 'QUERY',
     Opcode: 'QUERY',
+    // RD:1
   },
   questions: [
-    { CLASS: 'IN', NAME: 'google.com', TYPE: 'A' }
+    { CLASS: 'IN', NAME: 'clients.l.google.com', TYPE: 'A' }
   ]
 };
 
 const dnsQuery = {
-  id: 1,
+  id: 153,
   type: 'query',
-  flags: 256,
-  questions: [{ name: 'safebrowsing.clients.google.com', type: 'A', class: 'IN' }]
+  questions: [{ name: 'clients.l.google.com', type: 'A', class: 'IN' }]
 };
 
 const dr = {
@@ -104,7 +104,7 @@ const dnsResponse = {
   // console.log(Buffer.from(encode(pk)));
   // console.log(dnsPacket.encode(dnsQuery))
 
-  // console.log(encode(pk), '\n', dnsPacket.encode(dnsQuery), dnsPacket.decode(encode(pk)));
+  // console.log(dnsPacket.decode(Buffer.from(encode(pk))));
 
   const rdr = await fetch('https://cloudflare-dns.com/dns-query', {
     body: encode(pk),
@@ -114,11 +114,12 @@ const dnsResponse = {
 
   const resp = await rdr.arrayBuffer();
 
-  console.log(dnsPacket.decode(Buffer.from(resp)));
+  // console.log(dnsPacket.decode(Buffer.from(resp)));
 
 
-  // const enc = dnsPacket.encode(dr);
-  // //  console.log(dnsPacket.decode(enc));
+  // // const enc = dnsPacket.encode(dr);
+  // // //  console.log(dnsPacket.decode(enc));
 
+  // // console.log(decode(encode(pk)));
   console.log(decode(resp));
 })()

@@ -1,7 +1,7 @@
 type OPCODE = 'QUERY' | 'IQUERY' | 'STATUS' | 'RESERVED' | 'NOTIFY' | 'UPDATE';
 type RCODE = 'NOERROR' | 'FORMERR' | 'SERVFAIL' | 'NXDOMAIN' | 'NOTIMP' | 'REFUSED';
 
-export type RType = 'A' | 'AAAA' | 'MX' | 'TXT';
+export type RType = 'A' | 'AAAA' | 'MX' | 'TXT' | 'NS';
 export type RClass = 'IN' | 'CS' | 'CH' | 'HS';
 
 export type Question = { NAME: string, TYPE: RType, CLASS: RClass, }
@@ -39,4 +39,20 @@ export type DNSQuery = {
   additionals?: Answer[]
 }
 
-export type DNSResponse = DNSQuery;
+export type DNSResponse = {
+  id: number,
+  flags: {
+    QR: 'QUERY' | 'RESPONSE',
+    Opcode: number,
+    AA?: number,
+    TC?: number,
+    RD?: number,
+    RA?: number,
+    Z?: number,
+    RCODE?: RCODE
+  },
+  questions: Question[],
+  answers?: Answer[],
+  authorities?: Answer[],
+  additionals?: Answer[]
+}
