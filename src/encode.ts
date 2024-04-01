@@ -45,8 +45,6 @@ function formatQuery(packet: DNSQuery) {
 
 export default function encode(packet: DNSQuery) {
   const query = formatQuery(packet);
-  console.log(query);
-  
   const header = new Uint8Array(12);
   const view = new DataView(header.buffer);
 

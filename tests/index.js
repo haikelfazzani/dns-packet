@@ -1,4 +1,4 @@
-import {encode,decode} from '../dist/index.js';
+import {encode,decode} from '../dist/index.mjs';
 import axios from 'axios';
 import dnsPacket from 'dns-packet';
 
@@ -114,7 +114,7 @@ const dnsResponse = {
 
   const resp = await rdr.arrayBuffer();
 
-  // console.log(dnsPacket.decode(Buffer.from(resp)));
+  console.log(dnsPacket.decode(Buffer.from(resp)));
 
 
   // const enc = dnsPacket.encode(dr);

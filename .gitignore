@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+*.txt
 npm-debug.log*
 package-lock.json
 # Dependencies

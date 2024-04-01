@@ -1,6 +1,35 @@
 import getQR from "./utils/getQR";
 import getRCODE from "./utils/getRCODE";
 
+function readQuestion(view: DataView, offset: number) {
+  let position = offset;
+  let domain = '';
+
+  while (true) {
+    const labelLength = view.getUint8(position++);
+    console.log('labelLength ==> ',labelLength, position);
+    
+    if (labelLength === 0) break;
+    if (domain.length !== 0) domain += '.';
+
+    for (let i = 0; i < labelLength; i++) {
+      domain += String.fromCharCode(view.getUint8(position + i));
+    }
+
+    position += labelLength;
+  }
+
+  const TYPE = view.getUint16(position);
+  const CLASS = view.getUint16(position + 2);
+
+  return {
+    NAME: domain,
+    TYPE,
+    CLASS,
+    length: position - offset + 4
+  };
+}
+
 export default function decode(buffer: ArrayBuffer) {
 
   const view = new DataView(buffer)
@@ -23,7 +52,9 @@ export default function decode(buffer: ArrayBuffer) {
     RCODE: flagsVal & 0xF
   };
 
-  console.log(id, flags, QDCOUNT);
+  const questions = readQuestion(view, 12);
+  console.log(questions);
+
 
   return {
     id,
