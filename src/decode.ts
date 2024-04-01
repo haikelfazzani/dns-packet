@@ -5,22 +5,33 @@ import getRClass from "./utils/getRClass";
 import getRType from "./utils/getRType";
 
 function decodeName(view: DataView, offset: number) {
-  let position = offset;
+  let pos = offset;
   let domainName = '';
 
+  console.log(offset);
+  
+
   while (true) {
-    const partLen = view.getUint8(position++);
+    const partLen = view.getUint8(pos++);
+    console.log(partLen, pos);
+    
 
     if (partLen === 0) break;
     if (domainName.length !== 0) domainName += '.';
 
     for (let i = 0; i < partLen; i++) {
-      domainName += String.fromCharCode(view.getUint8(position + i));
+      
+      if (pos + partLen > view.byteLength) {
+        
+        throw new Error('Invalid DNS packet: Label length exceeds buffer bounds');
+      }
+
+      domainName += String.fromCharCode(view.getUint8(pos + i));
     }
 
-    position += partLen;
+    pos += partLen;
   }
-  return { name: domainName, position }
+  return { name: domainName, offset:pos }
 }
 
 export default function decode(buffer: ArrayBuffer): DNSResponse {
@@ -48,12 +59,16 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
   };
 
   // decode questions
-  const { position, name } = decodeName(view, offset)
-  const question = { NAME: name, TYPE: view.getUint16(position), CLASS: view.getUint16(position + 2) };
+  let qd = decodeName(view, offset)
+  const question = { NAME: qd.name, TYPE: view.getUint16(qd.offset), CLASS: view.getUint16(qd.offset + 2) };
 
-  offset = position - offset + 4;
+  offset = qd.offset - offset + 4;
 
   // decode answers
+  let ad = decodeName(view, offset);
+
+
+
 
   // decode authorities
 

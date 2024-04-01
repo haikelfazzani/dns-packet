@@ -10,7 +10,7 @@ const pk = {
     // RD:1
   },
   questions: [
-    { CLASS: 'IN', NAME: 'clients.l.google.com', TYPE: 'A' }
+    { CLASS: 'IN', NAME: 'google.com', TYPE: 'A' }
   ]
 };
 
@@ -114,12 +114,12 @@ const dnsResponse = {
 
   const resp = await rdr.arrayBuffer();
 
-  // console.log(dnsPacket.decode(Buffer.from(resp)));
+  console.log(dnsPacket.decode(Buffer.from(resp)));
 
 
   // // const enc = dnsPacket.encode(dr);
   // // //  console.log(dnsPacket.decode(enc));
 
   // // console.log(decode(encode(pk)));
-  console.log(decode(resp));
+  // console.log(decode(resp));
 })()

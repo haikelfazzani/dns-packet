@@ -70,13 +70,12 @@ export default function encode(packet: DNSQuery) {
 
     nameBuffer = concatenateUint8Arrays([nameBuffer, new Uint8Array([0])]); // Terminator
 
-    // Combine CLASS, TYPE, and name buffers
     const classBuffer = new Uint8Array(2);
     const typeBuffer = new Uint8Array(2);
-    classBuffer[0] = (question.CLASS >> 8) & 0xFF; // Higher byte
-    classBuffer[1] = question.CLASS & 0xFF;        // Lower byte
-    typeBuffer[0] = (question.TYPE >> 8) & 0xFF; // Higher byte
-    typeBuffer[1] = question.TYPE & 0xFF;        // Lower byte
+    classBuffer[0] = (question.CLASS >> 8) & 0xFF; 
+    classBuffer[1] = question.CLASS & 0xFF;        
+    typeBuffer[0] = (question.TYPE >> 8) & 0xFF; 
+    typeBuffer[1] = question.TYPE & 0xFF;        
 
     return concatenateUint8Arrays([nameBuffer, classBuffer, typeBuffer]);
   };
