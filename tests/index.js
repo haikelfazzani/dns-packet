@@ -7,7 +7,8 @@ const pk = {
   flags: {
     QR: 'QUERY',
     Opcode: 'QUERY',
-    // RD:1
+    AA: 1,
+    RD: 1
   },
   questions: [
     { CLASS: 'IN', NAME: 'google.com', TYPE: 'A' }
@@ -17,7 +18,8 @@ const pk = {
 const dnsQuery = {
   id: 153,
   type: 'query',
-  questions: [{ name: 'clients.l.google.com', type: 'A', class: 'IN' }]
+  flags:384,
+  questions: [{  name: 'google.com', type: 'CNAME', class: 'IN' }]
 };
 
 const dr = {
@@ -114,12 +116,14 @@ const dnsResponse = {
 
   const resp = await rdr.arrayBuffer();
 
-  console.log(dnsPacket.decode(Buffer.from(resp)));
+  // console.log(dnsPacket.decode(Buffer.from(resp)));
 
 
   // // const enc = dnsPacket.encode(dr);
   // // //  console.log(dnsPacket.decode(enc));
 
   // // console.log(decode(encode(pk)));
-  // console.log(decode(resp));
+  console.log(dnsPacket.decode(Buffer.from(resp)).answers);
+  console.log(decode(resp));
+  // decodeDNSPacket(resp)
 })()

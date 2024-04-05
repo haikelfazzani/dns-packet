@@ -4,48 +4,19 @@ import getRCODE from "./utils/getRCODE";
 import getRClass from "./utils/getRClass";
 import getRType from "./utils/getRType";
 
-function decodeName(view: DataView, offset: number) {
-  let pos = offset;
-  let domainName = '';
-
-  console.log(offset);
-  
-
-  while (true) {
-    const partLen = view.getUint8(pos++);
-    console.log(partLen, pos);
-    
-
-    if (partLen === 0) break;
-    if (domainName.length !== 0) domainName += '.';
-
-    for (let i = 0; i < partLen; i++) {
-      
-      if (pos + partLen > view.byteLength) {
-        
-        throw new Error('Invalid DNS packet: Label length exceeds buffer bounds');
-      }
-
-      domainName += String.fromCharCode(view.getUint8(pos + i));
-    }
-
-    pos += partLen;
-  }
-  return { name: domainName, offset:pos }
-}
-
 export default function decode(buffer: ArrayBuffer): DNSResponse {
 
-  let offset = 12;
+  // const uint8Array = new Uint8Array(buffer)
 
-  const view = new DataView(buffer)
-  const id = view.getUint16(0, true)
+  const view = new DataView(buffer);
+
+  const id = view.getUint16(0, true);
   const flagsVal = view.getUint16(2);
 
-  const QDCOUNT = view.getUint16(4)
-  const ANCOUNT = view.getUint16(6)
-  const NSCOUNT = view.getUint16(8)
-  const ARCOUNT = view.getUint16(10)
+  const QDCOUNT = view.getUint16(4);
+  const ANCOUNT = view.getUint16(6);
+  const NSCOUNT = view.getUint16(8);
+  const ARCOUNT = view.getUint16(10);
 
   const flags = {
     QR: getQR((flagsVal >> 15) & 0x1),
@@ -58,26 +29,75 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     RCODE: getRCODE(flagsVal & 0xF)
   };
 
+  let offset = 12;
+
   // decode questions
-  let qd = decodeName(view, offset)
-  const question = { NAME: qd.name, TYPE: view.getUint16(qd.offset), CLASS: view.getUint16(qd.offset + 2) };
+  const questions = [];
+  for (let i = 0; i < QDCOUNT; i++) {
+    let end = offset;
+    while (view.getUint8(end) !== 0) {
+      end++;
+    }
 
-  offset = qd.offset - offset + 4;
+    const name = decodeName(view, offset, end);
+    offset = end + 1;
 
+    const type = view.getUint16(offset);
+    offset += 2;
+    const qclass = view.getUint16(offset);
+    offset += 2;
+
+    questions.push({ CLASS: qclass, NAME: name, TYPE: type });
+  }
+
+  offset += questions.length + 1;
+  
   // decode answers
-  let ad = decodeName(view, offset);
+  const answers = [];
+  for (let i = 0; i < ANCOUNT; i++) {
+    const aType = view.getUint16(offset)
+    offset += 2;
 
+    const aClass = view.getUint16(offset)
+    offset += 2;
 
+    const ttl = view.getUint32(offset)
+    offset += 4;
 
+    const RDLENGTH = view.getUint16(offset)
+    offset += 2;
+
+    let data = '';
+    for (let i = 0; i < RDLENGTH; i++) {
+      data += '.' + view.getUint8(offset + i);
+    }
+
+    answers.push({ CLASS: getRClass(aClass), TYPE: getRType(aType), ttl, RDLENGTH, data: data.slice(1), NAME:questions[0].NAME });
+  }
+
+  offset += answers.length + 1;
+
+  console.log('offset ===> ', view.byteLength, offset);
 
   // decode authorities
+
 
   return {
     id,
     flags,
-    questions: [{ NAME: question.NAME, CLASS: getRClass(question.CLASS), TYPE: getRType(question.TYPE) }],
-    answers: [],
+    questions: [{ NAME: questions[0].NAME, CLASS: getRClass(questions[0].CLASS), TYPE: getRType(questions[0].TYPE) }],
+    answers,
     authorities: [],
     additionals: [],
   };
+}
+
+function decodeName(data: DataView, start: number, end: number) {
+  let name = "";
+  for (let i = start; i < end; i++) {
+    const offset = data.getUint8(i);
+    const c = String.fromCharCode(offset);
+    name += c;
+  }
+  return name.replace('\x03', '.');
 }
