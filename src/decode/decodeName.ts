@@ -6,7 +6,7 @@ export default function decodeName(data: DataView, start: number, end: number) {
       const c = String.fromCharCode(nbc);
       name += c;
     }
-    if (nbc === 3) name += '.'
+    else name += '.'
   }
-  return name;
+  return name.slice(1);
 }

@@ -1,20 +1,23 @@
 import getRType from "../utils/getRType";
 import decodeName from "./decodeName";
 
-export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, aType: number) {
+export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number) {
   let RDATA = '';
 
-  if (getRType(aType) === 'A') {
+  console.log(rType);
+  
+
+  if (getRType(rType) === 'A') {
     for (let i = 0; i < RDLENGTH; i++) {
       RDATA += (i === 0 ? '' : '.') + view.getUint8(offset + i)
     }
   }
 
-  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(getRType(aType))) {
+  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(getRType(rType))) {
     RDATA = decodeName(view, offset, offset + RDLENGTH);
   }
 
-  if(getRType(aType) === 'SOA') {
+  if(getRType(rType) === 'SOA') {
     /**
      * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
     /                     MNAME                     /

@@ -6,7 +6,7 @@ const dnsQuery = {
   id: 153,
   type: 'query',
   flags: dnsPacket.RECURSION_DESIRED,
-  questions: [{ name: 'public-dns.mozilla.org', type: 'NS', class: 'IN' }]
+  questions: [{ name: 'gmail.google.com', type: 'TXT', class: 'IN' }]
 };
 
 const server = createSocket('udp4');
@@ -16,8 +16,8 @@ server.send(dnsPacket.encode(dnsQuery), 53, '1.1.1.1', (err) => {
 
 
   server.on('message', (msg, rinfo) => {
-    console.log(dnsPacket.decode(msg));
-    console.log(decode(msg.buffer).answers);
+    console.log(dnsPacket.decode(msg).authorities);
+    console.log(decode(msg.buffer).authorities);
 
     server.close();
   });

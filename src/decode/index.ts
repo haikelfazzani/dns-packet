@@ -57,10 +57,10 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
   // decode answers
   const answers = [];
   for (let i = 0; i < ANCOUNT; i++) {
-    const aType = view.getUint16(offset)
+    const rType = view.getUint16(offset)
     offset += 2;
 
-    const aClass = view.getUint16(offset)
+    const rClass = view.getUint16(offset)
     offset += 2;
 
     const ttl = view.getUint32(offset)
@@ -69,25 +69,39 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     const RDLENGTH = view.getUint16(offset)
     offset += 2;
 
-    let RDATA = decodeRDATA(view, offset, RDLENGTH, aType);
+    let RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
     offset += RDLENGTH + 2;
 
-    answers.push({ CLASS: aClass, TYPE: aType, ttl, RDLENGTH, RDATA, NAME: questions[0].NAME });
+    answers.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: questions[0].NAME });
   }
 
-  offset += answers.length + 1;
-
-  console.log('offset ===> ', view.byteLength, offset);
+  if (answers.length > 0) offset += answers.length + 1;
 
   // decode authorities
+  const authorities = [];
+  for (let i = 0; i < NSCOUNT; i++) {
 
+
+    const type = view.getUint16(offset);
+    offset += 2;
+    const qclass = view.getUint16(offset);
+    offset += 2;
+
+    const ttl = view.getUint32(offset)
+    offset += 4;
+
+    const RDLENGTH = view.getUint16(offset)
+    offset += 2;
+
+    authorities.push({ CLASS: qclass, NAME: 'name', TYPE: type, ttl, RDLENGTH });
+  }
 
   return {
     id,
     flags,
     questions: [{ NAME: questions[0].NAME, CLASS: questions[0].CLASS, TYPE: questions[0].TYPE }],
     answers,
-    authorities: [],
+    authorities,
     additionals: [],
   };
 }
