@@ -6,7 +6,7 @@ const dnsQuery = {
   id: 153,
   type: 'query',
   flags: dnsPacket.RECURSION_DESIRED,
-  questions: [{ name: 'google.com', type: 'NS', class: 'IN' }]
+  questions: [{ name: 'google.com', type: 'A', class: 'IN' }]
 };
 
 const server = createSocket('udp4');

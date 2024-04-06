@@ -68,12 +68,11 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     offset += 2;
 
     let RDATA = '';
-    // if (aType === 1) for (let i = 0; i < RDLENGTH; i++) {
-    //   RDATA += '.' + view.getUint8(offset + i)
-    // }
+    if (aType === 1) for (let i = 0; i < RDLENGTH; i++) {
+      RDATA += '.' + view.getUint8(offset + i)
+    }
 
     if (aType !== 1) {
-      console.log('RDLENGTH ===> ',RDLENGTH, offset + RDLENGTH - offset);
       RDATA = decodeName(view, offset, offset + RDLENGTH);
     }
 
