@@ -51,7 +51,7 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
   }
 
   offset += questions.length + 1;
-  
+
   // decode answers
   const answers = [];
   for (let i = 0; i < ANCOUNT; i++) {
@@ -67,12 +67,19 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     const RDLENGTH = view.getUint16(offset)
     offset += 2;
 
-    let data = '';
-    for (let i = 0; i < RDLENGTH; i++) {
-      data += '.' + view.getUint8(offset + i);
+    let RDATA = '';
+    // if (aType === 1) for (let i = 0; i < RDLENGTH; i++) {
+    //   RDATA += '.' + view.getUint8(offset + i)
+    // }
+
+    if (aType !== 1) {
+      console.log('RDLENGTH ===> ',RDLENGTH, offset + RDLENGTH - offset);
+      RDATA = decodeName(view, offset, offset + RDLENGTH);
     }
 
-    answers.push({ CLASS: getRClass(aClass), TYPE: getRType(aType), ttl, RDLENGTH, data: data.slice(1), NAME:questions[0].NAME });
+    offset += RDLENGTH + 2;
+
+    answers.push({ CLASS: aClass, TYPE: aType, ttl, RDLENGTH, RDATA, NAME: questions[0].NAME });
   }
 
   offset += answers.length + 1;
@@ -85,7 +92,7 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
   return {
     id,
     flags,
-    questions: [{ NAME: questions[0].NAME, CLASS: getRClass(questions[0].CLASS), TYPE: getRType(questions[0].TYPE) }],
+    questions: [{ NAME: questions[0].NAME, CLASS: questions[0].CLASS, TYPE: questions[0].TYPE }],
     answers,
     authorities: [],
     additionals: [],
@@ -99,5 +106,5 @@ function decodeName(data: DataView, start: number, end: number) {
     const c = String.fromCharCode(offset);
     name += c;
   }
-  return name.replace('\x03', '.');
+  return name.replace(/\n|\t|\x07/, '').replace(/\x03/g, '.');
 }
