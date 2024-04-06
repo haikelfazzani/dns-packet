@@ -1,8 +1,10 @@
-import { DNSResponse } from "./types";
-import getQR from "./utils/getQR";
-import getRCODE from "./utils/getRCODE";
-import getRClass from "./utils/getRClass";
-import getRType from "./utils/getRType";
+import { DNSResponse } from "../types";
+import getQR from "../utils/getQR";
+import getRCODE from "../utils/getRCODE";
+import getRClass from "../utils/getRClass";
+import getRType from "../utils/getRType";
+import decodeName from "./decodeName";
+import decodeRDATA from "./decodeRDATA";
 
 export default function decode(buffer: ArrayBuffer): DNSResponse {
 
@@ -67,15 +69,7 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     const RDLENGTH = view.getUint16(offset)
     offset += 2;
 
-    let RDATA = '';
-    if (aType === 1) for (let i = 0; i < RDLENGTH; i++) {
-      RDATA += '.' + view.getUint8(offset + i)
-    }
-
-    if (aType !== 1) {
-      RDATA = decodeName(view, offset, offset + RDLENGTH);
-    }
-
+    let RDATA = decodeRDATA(view, offset, RDLENGTH, aType);
     offset += RDLENGTH + 2;
 
     answers.push({ CLASS: aClass, TYPE: aType, ttl, RDLENGTH, RDATA, NAME: questions[0].NAME });
@@ -96,14 +90,4 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     authorities: [],
     additionals: [],
   };
-}
-
-function decodeName(data: DataView, start: number, end: number) {
-  let name = "";
-  for (let i = start; i < end; i++) {
-    const offset = data.getUint8(i);
-    const c = String.fromCharCode(offset);
-    name += c;
-  }
-  return name.replace(/\n|\t|\x07/, '').replace(/\x03/g, '.');
 }

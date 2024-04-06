@@ -1,9 +1,9 @@
-import { DNSQuery } from "./types";
-import getOPCODE from "./utils/getOPCODE";
-import getQR from "./utils/getQR";
-import getRCODE from "./utils/getRCODE";
-import getRClass from "./utils/getRClass";
-import getRType from "./utils/getRType";
+import { DNSQuery } from "../types";
+import getOPCODE from "../utils/getOPCODE";
+import getQR from "../utils/getQR";
+import getRCODE from "../utils/getRCODE";
+import getRClass from "../utils/getRClass";
+import getRType from "../utils/getRType";
 
 function concatenateUint8Arrays(arrays) {
   let totalLength = 0;

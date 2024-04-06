@@ -1,5 +1,5 @@
-import encode from './encode'
-import decode from './decode';
+import encode from './encode/index'
+import decode from './decode/index';
 
 export {
   encode,
