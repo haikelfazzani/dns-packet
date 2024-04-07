@@ -8,8 +8,6 @@ import decodeRDATA from "./decodeRDATA";
 
 export default function decode(buffer: ArrayBuffer): DNSResponse {
 
-  // const uint8Array = new Uint8Array(buffer)
-
   const view = new DataView(buffer);
 
   const id = view.getUint16(0, true);
@@ -35,28 +33,59 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
 
   // decode questions
   const questions = [];
+
   for (let i = 0; i < QDCOUNT; i++) {
-    let end = offset;
-    while (view.getUint8(end) !== 0) {
-      end++;
-    }
+    const { name, consumedBytes } = decodeName(view, offset);
+    offset += consumedBytes;
 
-    const name = decodeName(view, offset, end);
-    offset = end + 1;
-
-    const type = view.getUint16(offset);
+    const rType = view.getUint16(offset);
     offset += 2;
-    const qclass = view.getUint16(offset);
+    const rClass = view.getUint16(offset);
     offset += 2;
 
-    questions.push({ CLASS: qclass, NAME: name, TYPE: type });
+    questions.push({ CLASS: getRClass(rClass), NAME: name, TYPE: getRType(rType) });
   }
-
-  offset += questions.length + 1;
 
   // decode answers
   const answers = [];
+
   for (let i = 0; i < ANCOUNT; i++) {
+
+    const { name, consumedBytes } = decodeName(view, offset)
+    offset += consumedBytes;
+
+    const rType = view.getUint16(offset)
+    offset += 2;
+
+    const rClass = view.getUint16(offset)
+    offset += 2;
+
+    const ttl = view.getUint32(offset)
+    offset += 4;
+
+    const RDLENGTH = view.getUint16(offset)
+    offset += 2;
+
+    let RDATA: any = '';
+    if ([1, 28].includes(rType)) {
+      RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
+    }
+    else {
+      let { name, consumedBytes: cb } = decodeName(view, offset);
+      RDATA = name;
+      offset += cb;
+    }
+
+    answers.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: name });
+  }
+
+  // decode authorities
+  const authorities = [];
+
+  for (let i = 0; i < NSCOUNT; i++) {
+    const { name, consumedBytes } = decodeName(view, offset)
+    offset += consumedBytes;
+
     const rType = view.getUint16(offset)
     offset += 2;
 
@@ -72,28 +101,7 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     let RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
     offset += RDLENGTH + 2;
 
-    answers.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: questions[0].NAME });
-  }
-
-  if (answers.length > 0) offset += answers.length + 1;
-
-  // decode authorities
-  const authorities = [];
-  for (let i = 0; i < NSCOUNT; i++) {
-
-
-    const type = view.getUint16(offset);
-    offset += 2;
-    const qclass = view.getUint16(offset);
-    offset += 2;
-
-    const ttl = view.getUint32(offset)
-    offset += 4;
-
-    const RDLENGTH = view.getUint16(offset)
-    offset += 2;
-
-    authorities.push({ CLASS: qclass, NAME: 'name', TYPE: type, ttl, RDLENGTH });
+    authorities.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: name });
   }
 
   return {

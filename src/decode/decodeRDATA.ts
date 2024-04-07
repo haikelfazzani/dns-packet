@@ -4,20 +4,105 @@ import decodeName from "./decodeName";
 export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number) {
   let RDATA = '';
 
-  console.log(rType);
-  
-
   if (getRType(rType) === 'A') {
     for (let i = 0; i < RDLENGTH; i++) {
       RDATA += (i === 0 ? '' : '.') + view.getUint8(offset + i)
     }
   }
 
-  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(getRType(rType))) {
-    RDATA = decodeName(view, offset, offset + RDLENGTH);
+  if (getRType(rType) === 'AAAA') {
+    for (let i = 0; i < RDLENGTH; i += 2) {
+      RDATA += (i === 0 ? '' : ':') + view.getUint16(offset + i).toString(16)
+    }
   }
 
-  if(getRType(rType) === 'SOA') {
+  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(getRType(rType))) {
+    RDATA = decodeName(view, offset).name;
+  }
+
+  if (getRType(rType) === 'WKS') {
+    /**
+     * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                    ADDRESS                    |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |       PROTOCOL        |                       |
+        +--+--+--+--+--+--+--+--+                       |
+        |                                               |
+        /                   <BIT MAP>                   /
+        /                                               /
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    ADDRESS         An 32 bit Internet address
+    PROTOCOL        An 8 bit IP protocol number
+    <BIT MAP>       A variable length bit map.  The bit map must be a multiple of 8 bits long.
+     */
+    RDATA = decodeName(view, offset).name;
+    return {
+      ADDRESS: view.getUint32(offset),
+      PROTOCOL: view.getUint8(offset + 4),
+      BIT_MAP: view.getUint16(offset + 1)
+    }
+  }
+
+  if (getRType(rType) === 'MX') {
+    /**
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    |     PREFERENCE     16 bit integer              |
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    /     EXCHANGE       A <domain-name>             /
+    /                                               /
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+     */
+    const PREFERENCE = view.getUint16(offset);
+    const EXCHANGE = decodeName(view, offset + 2);
+
+    return {
+      PREFERENCE,
+      EXCHANGE: EXCHANGE.name
+    }
+  }
+
+  if (getRType(rType) === 'HINFO') {
+    /**
+     * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    /                      CPU                      /
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+    /                       OS                      /
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
+    CPU   A <character-string> which specifies the CPU type.
+    OS    A <character-string> which specifies the operating  system type.
+     */
+    const CPU = decodeName(view, offset);
+    offset += CPU.consumedBytes
+    const OS = decodeName(view, offset);
+
+    return {
+      CPU: CPU.name,
+      OS: OS.name
+    }
+  }
+
+  if (getRType(rType) === 'SOA') {
+
+    const MNAME = decodeName(view, offset);
+    offset += MNAME.consumedBytes
+    const RNAME = decodeName(view, offset);
+    offset += RNAME.consumedBytes;
+
+    const SERIAL = view.getUint32(offset);
+    offset += 4;
+    const REFRESH = view.getUint32(offset)
+    offset += 4;
+
+    const RETRY = view.getUint32(offset)
+    offset += 4;
+
+    const EXPIRE = view.getUint32(offset)
+    offset += 4;
+
+    const MINIMUM = view.getUint32(offset);
+
+
     /**
      * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
     /                     MNAME                     /
@@ -41,6 +126,15 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     |                                               |
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
      */
+    return {
+      MNAME: MNAME.name,
+      RNAME: RNAME.name,
+      SERIAL,
+      REFRESH,
+      RETRY,
+      EXPIRE,
+      MINIMUM
+    }
   }
 
   return RDATA
