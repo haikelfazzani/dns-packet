@@ -1,7 +1,8 @@
+// original code from https://github.com/mafintosh/dns-packet and converted to DataView
 export default function decodeName(view: DataView, offset: number, { mail = false } = {}) {
   if (!offset) offset = 0;
 
-  const list = [];
+  const parts = [];
   let oldOffset = offset;
   let totalLength = 0;
   let consumedBytes = 0;
@@ -33,7 +34,7 @@ export default function decodeName(view: DataView, offset: number, { mail = fals
       if (mail) {
         label = label.replace(/\./g, '\\.');
       }
-      list.push(label);
+      parts.push(label);
       offset += len;
       consumedBytes += jumped ? 0 : len;
     } else if ((len & 0xc0) === 0xc0) {
@@ -45,7 +46,7 @@ export default function decodeName(view: DataView, offset: number, { mail = fals
       const jumpOffset = view.getUint16(offset - 1) - 0xc000;
       if (jumpOffset >= oldOffset) {
         // Allow only pointers to prior data. RFC 1035, section 4.1.4 states:
-        // "[...] an entire domain name or a list of labels at the end of a domain name
+        // "[...] an entire domain name or a parts of labels at the end of a domain name
         // is replaced with a pointer to a prior occurrence (sic) of the same name."
         throw new Error('Cannot decode name (bad pointer)');
       }
@@ -58,6 +59,6 @@ export default function decodeName(view: DataView, offset: number, { mail = fals
     }
   }
 
-  console.log('consumedBytes ', consumedBytes)
-  return { name: list.length === 0 ? '.' : list.join('.'), consumedBytes };
+  // console.log('consumedBytes ', consumedBytes)
+  return { name: parts.length === 0 ? '.' : parts.join('.'), consumedBytes };
 }

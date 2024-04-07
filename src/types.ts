@@ -24,8 +24,8 @@ export type Answer = {
 export type DNSQuery = {
   id: number, // 16 bit
   flags: {
-    QR: 'QUERY' | 'RESPONSE',
-    Opcode: OPCODE, // 4 bit : This value is set by the originator of a query and copied into the response
+    QR?: 'QUERY' | 'RESPONSE',
+    Opcode?: OPCODE, // 4 bit : This value is set by the originator of a query and copied into the response
     AA?: 0 | 1,     // Authoritative Answer - this bit is valid in responses
     TC?: 0 | 1,     // TrunCation - specifies that this message was truncated
     RD?: 0 | 1,     // Recursion Desired - this bit may be set in a query and is copied into the response

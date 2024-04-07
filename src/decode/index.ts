@@ -6,9 +6,8 @@ import getRType from "../utils/getRType";
 import decodeName from "./decodeName";
 import decodeRDATA from "./decodeRDATA";
 
-export default function decode(buffer: ArrayBuffer): DNSResponse {
-
-  const view = new DataView(buffer);
+export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
+  const view = new DataView(buffer instanceof ArrayBuffer ? buffer : buffer.buffer);
 
   const id = view.getUint16(0, true);
   const flagsVal = view.getUint16(2);
@@ -42,6 +41,9 @@ export default function decode(buffer: ArrayBuffer): DNSResponse {
     offset += 2;
     const rClass = view.getUint16(offset);
     offset += 2;
+
+    console.log(rClass, rType);
+    
 
     questions.push({ CLASS: getRClass(rClass), NAME: name, TYPE: getRType(rType) });
   }

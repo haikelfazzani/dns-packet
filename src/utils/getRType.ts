@@ -1,6 +1,6 @@
 export default function getRType(val?: string | number) {
 
-  if (typeof val === 'string' && val.startsWith('UNKNOWN_')) return +val.replace(/\D+/g,'')
+  if (typeof val === 'string' && val.startsWith('UNKNOWN_')) return +val.replace(/\D+/g, '')
 
   const RType = {
     'A': 1,
@@ -19,8 +19,16 @@ export default function getRType(val?: string | number) {
     'MINFO': 14,
     'MX': 15,
     'TXT': 16,
+    'RP': 17,
+    'SIG': 24,
     'AAAA': 28,
+
+    'DS': 43,
     'IPSECKEY': 45,
+    'RRSIG': 46,
+
+    'ANY': 255,
+    '*': 255
   }
 
   if (typeof val === 'number' && !Object.values(RType).includes(val)) return 'UNKNOWN_' + val;

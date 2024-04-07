@@ -6,23 +6,31 @@ const dnsQuery = {
   id: 153,
   type: 'query',
   flags: dnsPacket.RECURSION_DESIRED,
-  questions: [{ name: 'public-dns.mozilla.org', type: 'WKS', class: 'IN' }]
+  questions: [{ name: 'google.com', type: 'AAAA', class: 'IN' }]
+};
+
+const pk = {
+  id: 153,
+  flags: {
+    RD: 1
+  },
+  questions: [
+    { CLASS: 'IN', NAME: 'google.com', TYPE: 'AAAA' }
+  ]
 };
 
 const server = createSocket('udp4');
 
-server.send(dnsPacket.encode(dnsQuery), 53, '1.1.1.1', (err) => {
+server.send(encode(pk), 53, '1.1.1.1', (err) => {
   console.log(err);
 
 
   server.on('message', (msg, rinfo) => {
-    console.log(dnsPacket.decode(msg).authorities);
-    console.log(decode(msg.buffer).authorities);
+    console.log(dnsPacket.decode(msg));
+    console.log(decode(msg.buffer));
 
     server.close();
   });
-
-
 });
 
 // server.bind(8000)
