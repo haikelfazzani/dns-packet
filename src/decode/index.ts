@@ -42,9 +42,6 @@ export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
     const rClass = view.getUint16(offset);
     offset += 2;
 
-    console.log(rClass, rType);
-    
-
     questions.push({ CLASS: getRClass(rClass), NAME: name, TYPE: getRType(rType) });
   }
 
@@ -69,14 +66,9 @@ export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
     offset += 2;
 
     let RDATA: any = '';
-    if ([1, 28].includes(rType)) {
-      RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
-    }
-    else {
-      let { name, consumedBytes: cb } = decodeName(view, offset);
-      RDATA = name;
-      offset += cb;
-    }
+    RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
+
+    offset += RDLENGTH;
 
     answers.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: name });
   }
@@ -109,7 +101,7 @@ export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
   return {
     id,
     flags,
-    questions: [{ NAME: questions[0].NAME, CLASS: questions[0].CLASS, TYPE: questions[0].TYPE }],
+    questions,
     answers,
     authorities,
     additionals: [],

@@ -5,6 +5,10 @@ import formatQuery from "./formatQuery";
 
 export default function encode(packet: DNSQuery) {
   const query = formatQuery(packet);
+
+  const question = query.questions[0];
+  if(!question) throw new Error('No question found');
+
   const header = new Uint8Array(12);
   const view = new DataView(header.buffer);
 
@@ -20,7 +24,7 @@ export default function encode(packet: DNSQuery) {
   view.setUint16(4, 1);
   view.setUint16(6, 0);
   view.setUint16(8, 0);
-  view.setUint16(10, 0);
+  view.setUint16(10, 0);  
 
-  return combineUint8Arrays(header, encodeQuestion(query.questions[0]))
+  return combineUint8Arrays(header, encodeQuestion(question))
 }
