@@ -3,24 +3,25 @@ import decodeName from "./decodeName";
 
 export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number) {
   let RDATA = '';
+  const rTypeStr = getRType(rType);
 
-  if (getRType(rType) === 'A') {
+  if (rTypeStr === 'A') {
     for (let i = 0; i < RDLENGTH; i++) {
       RDATA += (i === 0 ? '' : '.') + view.getUint8(offset + i)
     }
   }
 
-  if (getRType(rType) === 'AAAA') {
+  if (rTypeStr === 'AAAA') {
     for (let i = 0; i < RDLENGTH; i += 2) {
       RDATA += (i === 0 ? '' : ':') + view.getUint16(offset + i).toString(16)
     }
   }
 
-  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(getRType(rType))) {
+  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
     RDATA = decodeName(view, offset).name;
   }
 
-  if (getRType(rType) === 'WKS') {
+  if (rTypeStr === 'WKS') {
     /**
      * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
         |                    ADDRESS                    |
@@ -43,7 +44,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  if (getRType(rType) === 'MX') {
+  if (rTypeStr === 'MX') {
     /**
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
     |     PREFERENCE     16 bit integer              |
@@ -61,7 +62,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  if (getRType(rType) === 'HINFO') {
+  if (rTypeStr === 'HINFO') {
     /**
      * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
     /                      CPU                      /
@@ -82,7 +83,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  if (getRType(rType) === 'SOA') {
+  if (rTypeStr === 'SOA') {
 
     const MNAME = decodeName(view, offset);
     offset += MNAME.consumedBytes

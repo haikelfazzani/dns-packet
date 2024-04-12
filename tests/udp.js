@@ -15,7 +15,7 @@ const pk = {
     RD: 1
   },
   questions: [
-    { CLASS: 'IN', NAME: 'google.com', TYPE: 'TXT' }
+    { CLASS: 'IN', NAME: 'google.com', TYPE: 'AAAA' }
   ]
 };
 
