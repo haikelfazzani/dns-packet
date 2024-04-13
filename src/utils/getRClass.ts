@@ -5,10 +5,7 @@ export default function getRClass(val?: string | number) {
     'CH': 3,
     'HS': 4,
     
-    'UNKNOWN_13': 13,
-    'UNKNOWN_15': 15,
     'ANY': 255,
-
     '*': 255
   }
   return typeof val === 'number' ? Object.entries(RClass).find(([_, value]) => value === val)[0] : RClass[val] || 1

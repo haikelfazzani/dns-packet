@@ -3,7 +3,7 @@ import decodeName from "./decodeName";
 
 export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number) {
   let RDATA = '';
-  const rTypeStr = getRType(rType);
+  const rTypeStr: string = getRType(rType);
 
   if (rTypeStr === 'A') {
     for (let i = 0; i < RDLENGTH; i++) {
@@ -17,7 +17,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  if (['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
+  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
     RDATA = decodeName(view, offset).name;
   }
 
