@@ -1,4 +1,5 @@
 export default function getRClass(val?: string | number) {
+  if (typeof val === 'string') val = val.toUpperCase();
   const RClass = {
     'IN': 1,
     'CS': 2,

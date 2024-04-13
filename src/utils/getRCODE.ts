@@ -1,4 +1,5 @@
 export default function getRCODE(val?: string | number) {
+  if (typeof val === 'string') val = val.toUpperCase();
   const rCODE = {
     'NOERROR': 0,
     'FORMERR': 1,

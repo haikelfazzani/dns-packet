@@ -1,4 +1,5 @@
 export default function getRType(val?: string | number) {
+  if (typeof val === 'string') val = val.toUpperCase();
 
   if (typeof val === 'string' && val.startsWith('UNKNOWN_')) return +val.replace(/\D+/g, '')
 

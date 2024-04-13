@@ -17,7 +17,13 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'TXT', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
+  if (rTypeStr === 'TXT') {
+    for (let i = 1; i < RDLENGTH; i++) {
+      RDATA += String.fromCharCode(view.getUint8(offset + i))
+    }
+  }
+
+  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {        
     RDATA = decodeName(view, offset).name;
   }
 

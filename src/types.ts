@@ -24,11 +24,11 @@ export type DNSQuery = {
   flags: {
     QR?: 'QUERY' | 'RESPONSE',
     Opcode?: OPCODE, // 4 bit : This value is set by the originator of a query and copied into the response
-    AA?: 0 | 1,     // Authoritative Answer - this bit is valid in responses
-    TC?: 0 | 1,     // TrunCation - specifies that this message was truncated
-    RD?: 0 | 1,     // Recursion Desired - this bit may be set in a query and is copied into the response
-    RA?: 0 | 1,     // Recursion Available
-    Z?: 0,          // 3 bit : Reserved for future use
+    AA?: number,     // (0 | 1) Authoritative Answer - this bit is valid in responses
+    TC?: number,     // (0 | 1) TrunCation - specifies that this message was truncated
+    RD?: number,     // (0 | 1) Recursion Desired - this bit may be set in a query and is copied into the response
+    RA?: number,     // (0 | 1) Recursion Available
+    Z?: number,          // 3 bit : Reserved for future use
     RCODE?: RCODE   // Response code - this 4 bit field is set as part of responses
   },
   questions: Question[],

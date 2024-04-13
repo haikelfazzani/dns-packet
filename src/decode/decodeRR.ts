@@ -4,16 +4,15 @@ import decodeName from "./decodeName";
 import decodeRDATA from "./decodeRDATA";
 
 export default function decodeRR(view: DataView, offset: number, COUNT: number) {
-
   const rrdata = [];
 
   for (let i = 0; i < COUNT; i++) {
 
     const { name, consumedBytes } = decodeName(view, offset)
     offset += consumedBytes;
-
+    
     if (name.length < 2) return { rrdata, cbrr: offset }
-
+    
     const rType = view.getUint16(offset)
     offset += 2;
 
