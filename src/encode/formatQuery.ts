@@ -14,10 +14,10 @@ export default function formatQuery(packet: DNSQuery) {
     flags: {
       QR: getQR(),
       Opcode: getOPCODE(flags.Opcode || 'QUERY'),
-      AA: flags.AA & 0,
-      TC: flags.TC & 0,
+      AA: flags.AA & 1,
+      TC: flags.TC & 1,
       RD: flags.RD & 1,
-      RA: flags.RA & 0,
+      RA: flags.RA & 1,
       Z: 0,
       RCODE: getRCODE()
     },
