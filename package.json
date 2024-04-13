@@ -1,6 +1,6 @@
 {
   "name": "dnspacket-ts",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Node/Browser module for encoding and decoding DNS packet",
   "type": "module",
   "author": "Haikel Fazzani",
@@ -28,12 +28,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wutility/dns-packet"
+    "url": "git+https://github.com/haikelfazzani/dns-packet"
   },
   "bugs": {
-    "url": "https://github.com/wutility/dns-packet/issues"
+    "url": "https://github.com/haikelfazzani/dns-packet/issues"
   },
-  "homepage": "https://github.com/wutility/dns-packet#readme",
+  "homepage": "https://github.com/haikelfazzani/dns-packet#readme",
   "license": "MIT",
   "keywords": [
     "dns",
