@@ -4,6 +4,8 @@ export default function getRClass(val?: string | number) {
     'CS': 2,
     'CH': 3,
     'HS': 4,
+    
+    'UNKNOWN_13': 13,
     'UNKNOWN_15': 15,
     'ANY': 255,
 

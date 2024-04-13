@@ -1,14 +1,12 @@
-type OPCODE = 'QUERY' | 'IQUERY' | 'STATUS' | 'RESERVED' | 'NOTIFY' | 'UPDATE';
-type RCODE = 'NOERROR' | 'FORMERR' | 'SERVFAIL' | 'NXDOMAIN' | 'NOTIMP' | 'REFUSED';
+export type OPCODE = 'QUERY' | 'IQUERY' | 'STATUS' | 'RESERVED' | 'NOTIFY' | 'UPDATE';
+export type RCODE = 'NOERROR' | 'FORMERR' | 'SERVFAIL' | 'NXDOMAIN' | 'NOTIMP' | 'REFUSED';
 
-export type RType = 'A' | 'AAAA' | 'MX' | 'TXT' | 'NS';
-export type RClass = 'IN' | 'CS' | 'CH' | 'HS';
+export type Question = { NAME: string, TYPE: string, CLASS: string }
 
-export type Question = { NAME: string, TYPE: RType, CLASS: RClass, }
 export type Answer = {
   NAME: string,
-  TYPE: RType,
-  CLASS: RClass,
+  TYPE: string,
+  CLASS: 'IN' | 'CS' | 'CH' | 'HS',
   TTL: number, // 32 bit unsigned integer that specifies the time interval (in seconds) that the resource record may be cached before it should be discarded
   RDLENGTH: number,
   RDATA?: {

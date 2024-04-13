@@ -24,6 +24,8 @@ export default function decodeRR(view: DataView, offset: number, COUNT: number) 
     const RDLENGTH = view.getUint16(offset)
     offset += 2;
 
+    console.log('decodeRR rType ==> ',rType, rClass);
+
     let RDATA: any = '';
     RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
 

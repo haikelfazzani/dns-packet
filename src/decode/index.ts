@@ -3,8 +3,10 @@ import decodeRR from "./decodeRR";
 import decodeQuestions from "./decodeQuestions";
 import decodeFlags from "./decodeFlags";
 
-export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
-  const view = new DataView(buffer instanceof ArrayBuffer ? buffer : buffer.buffer);
+export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSResponse {
+
+  const data = buffer instanceof Buffer ? new Uint8Array(buffer).buffer : buffer instanceof ArrayBuffer ? buffer : buffer.buffer;
+  const view = new DataView(data);
 
   const id = view.getUint16(0);
   const flagsVal = view.getUint16(2);
@@ -20,6 +22,9 @@ export default function decode(buffer: ArrayBuffer | Uint8Array): DNSResponse {
 
   // decode questions
   const { questions, cbq } = decodeQuestions(view, offset, QDCOUNT);
+
+  if (flags.QR === 'QUERY') return { id, flags, questions, answers: [], authorities: [], additionals: [] }
+
   offset = cbq;
 
   // decode answers

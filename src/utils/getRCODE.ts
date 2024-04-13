@@ -1,5 +1,5 @@
 export default function getRCODE(val?: string | number) {
-  const RCODE = {
+  const rCODE = {
     'NOERROR': 0,
     'FORMERR': 1,
     'SERVFAIL': 2,
@@ -17,5 +17,5 @@ export default function getRCODE(val?: string | number) {
     'RCODE_14': 14,
     'RCODE_15': 15,
   }
-  return typeof val === 'number' ? Object.entries(RCODE).find(([_, value]) => value === val)[0] : RCODE[val] || 0
+  return typeof val === 'number' ? Object.entries(rCODE).find(([_, value]) => value === val)[0] : rCODE[val] || 0
 }

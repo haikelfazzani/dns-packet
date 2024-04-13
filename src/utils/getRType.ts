@@ -2,7 +2,7 @@ export default function getRType(val?: string | number) {
 
   if (typeof val === 'string' && val.startsWith('UNKNOWN_')) return +val.replace(/\D+/g, '')
 
-  const RType = {
+  const rType = {
     'A': 1,
     'NS': 2,
     'MD': 3,
@@ -31,7 +31,7 @@ export default function getRType(val?: string | number) {
     '*': 255
   }
 
-  if (typeof val === 'number' && !Object.values(RType).includes(val)) return 'UNKNOWN_' + val;
+  if (typeof val === 'number' && !Object.values(rType).includes(val)) return 'UNKNOWN_' + val;
 
-  return typeof val === 'number' ? Object.entries(RType).find(([_, value]) => value === val)[0] : RType[val] || 1
+  return typeof val === 'number' ? Object.entries(rType).find(([_, value]) => value === val)[0] : rType[val] || 1
 }
