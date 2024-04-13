@@ -7,6 +7,7 @@ npm-debug.log*
 # Dependencies
 node_modules/
 src
+tests
 build
 v2.txt
 v2.js

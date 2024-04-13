@@ -5,7 +5,7 @@ Node/Browser module for encoding and decoding DNS packet based on rfc 1035
 ## Usage
 
 ```js
-import { decode, encode } from "dnspacket";
+import { decode, encode } from "dnspacket-ts";
 import axios from 'axios';
 
 const query: DNSQuery = {

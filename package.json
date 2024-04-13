@@ -1,11 +1,12 @@
 {
-  "name": "dnspacket",
-  "version": "1.0.0",
+  "name": "dnspacket-ts",
+  "version": "1.0.1",
   "description": "Node/Browser module for encoding and decoding DNS packet",
   "type": "module",
   "author": "Haikel Fazzani",
   "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "browser": "dist/index.js",
+  "module": "dist/index.mjs",
   "typings": "dist/index.d.ts",
   "scripts": {
     "build": "rollup -c",
@@ -24,5 +25,20 @@
     "rollup-plugin-esbuild": "^6.1.1",
     "rollup-terser": "^1.0.3",
     "typescript": "^5.2.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wutility/dns-packet"
+  },
+  "bugs": {
+    "url": "https://github.com/wutility/dns-packet/issues"
+  },
+  "homepage": "https://github.com/wutility/dns-packet#readme",
+  "license": "MIT",
+  "keywords": [
+    "dns",
+    "dnspacket",
+    "borwser",
+    "node"
+  ]
 }
