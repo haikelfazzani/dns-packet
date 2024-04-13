@@ -2,7 +2,7 @@ import dts from 'rollup-plugin-dts';
 import esbuild from 'rollup-plugin-esbuild';
 
 const OUTPUT_FILENAME = `dist/index`;
-const banner = `/*! DNSPacket Copyright 2024 - Haikel Fazzani */\n`;
+const banner = `/*! dnspacket Copyright ${new Date().getFullYear()} - Haikel Fazzani */\n`;
 
 const bundle = (config) => ({
   ...config,

@@ -1,5 +1,5 @@
 {
-  "name": "dns-packet-ts",
+  "name": "dnspacket",
   "version": "1.0.0",
   "description": "Node/Browser module for encoding and decoding DNS packet",
   "type": "module",
