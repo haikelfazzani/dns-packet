@@ -38,6 +38,7 @@
   "keywords": [
     "dns",
     "dnspacket",
+    "dns-parser",
     "borwser",
     "node"
   ]
