@@ -19,7 +19,7 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   const flags = decodeFlags(flagsVal);
 
   let offset = 12;
-
+  
   // decode questions
   const { questions, cbq } = decodeQuestions(view, offset, QDCOUNT);
 
@@ -30,7 +30,7 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   // decode answers
   const { rrdata: answers, cbrr } = decodeRR(view, offset, ANCOUNT);
   offset = cbrr;
-
+  
   // decode authorities
   const { rrdata: authorities, cbrr: cbau } = decodeRR(view, offset, NSCOUNT);
   offset = cbau;

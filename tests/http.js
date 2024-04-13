@@ -1,5 +1,6 @@
 import { encode, decode } from '../dist/index.mjs';
 import axios from 'axios';
+import dnsPacket from 'dns-packet'
 
 const pk = {
   id: 0,
@@ -17,12 +18,12 @@ const pk = {
   //   responseType: 'arraybuffer'
   // });
 
-  const hexString = '<00 00 01 00 00 01 00 00 00 00 00 01 06 61 70 69 2d 76 32 0a 73 6f 75 6e 64 63 6c 6f 75 64 03 63 6f 6d 00 00 01 00 01 00 00 29 10 00 00 00 00 00 00 4e 00 0c 00 4a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00';
+  const hexString = '<00 00 81 80 00 01 00 01 00 00 00 01 03 77 77 77 07 67 73 74 61 74 69 63 03 63 6f 6d 00 00 01 00 01 c0 0c 00 01 00 01 00 00 00 88 00 04 8e fa b8 e3 00';
   const hexArray = hexString.split(' ').map(hex => parseInt(hex, 16));
   const buffer = Buffer.from(hexArray);
   // const arrayBuffer = new Uint8Array(buffer).buffer;
 
-
+  // dnsPacket.decode(hexArray)
   console.log(buffer);
   console.log(decode(buffer));
 })();

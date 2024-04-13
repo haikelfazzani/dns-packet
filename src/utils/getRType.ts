@@ -33,5 +33,5 @@ export default function getRType(val?: string | number) {
 
   if (typeof val === 'number' && !Object.values(rType).includes(val)) return 'UNKNOWN_' + val;
 
-  return typeof val === 'number' ? Object.entries(rType).find(([_, value]) => value === val)[0] : rType[val] || 1
+  return typeof val === 'number' ? Object.entries(rType).find(([_, value]) => value === val)[0] : rType[val] || 255
 }
