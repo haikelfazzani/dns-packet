@@ -25,9 +25,7 @@ export default function decodeRR(view: DataView, offset: number, COUNT: number) 
     const RDLENGTH = view.getUint16(offset)
     offset += 2;
 
-    let RDATA: any = '';
-    RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
-
+    const RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
     offset += RDLENGTH;
 
     rrdata.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: name });

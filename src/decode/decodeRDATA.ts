@@ -9,22 +9,26 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     for (let i = 0; i < RDLENGTH; i++) {
       RDATA += (i === 0 ? '' : '.') + view.getUint8(offset + i)
     }
+    return RDATA
   }
 
   if (rTypeStr === 'AAAA') {
     for (let i = 0; i < RDLENGTH; i += 2) {
       RDATA += (i === 0 ? '' : ':') + view.getUint16(offset + i).toString(16)
     }
+    return RDATA
   }
 
   if (rTypeStr === 'TXT') {
     for (let i = 1; i < RDLENGTH; i++) {
       RDATA += String.fromCharCode(view.getUint8(offset + i))
     }
+    return RDATA
   }
 
-  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {        
+  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
     RDATA = decodeName(view, offset).name;
+    return RDATA
   }
 
   if (rTypeStr === 'WKS') {
@@ -42,7 +46,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     PROTOCOL        An 8 bit IP protocol number
     <BIT MAP>       A variable length bit map.  The bit map must be a multiple of 8 bits long.
      */
-    RDATA = decodeName(view, offset).name;
+
     return {
       ADDRESS: view.getUint32(offset),
       PROTOCOL: view.getUint8(offset + 4),
@@ -144,5 +148,25 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
   }
 
-  return RDATA
+  if (rTypeStr === 'SRV') {
+    const PRIORITY = view.getUint16(offset)
+    offset += 2
+
+    const WEIGHT = view.getUint16(offset)
+    offset += 2
+
+    const PORT = view.getUint16(offset)
+    offset += 2
+
+    const TARGET = decodeName(view, offset).name
+
+    return {
+      PRIORITY,
+      WEIGHT,
+      PORT,
+      TARGET
+    }
+  }
+
+  return view.buffer.slice(offset)
 }
