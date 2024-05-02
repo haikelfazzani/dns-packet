@@ -14,12 +14,12 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   const QDCOUNT = view.getUint16(4);
   const ANCOUNT = view.getUint16(6);
   const NSCOUNT = view.getUint16(8);
-  const ARCOUNT = view.getUint16(10);
+  // const ARCOUNT = view.getUint16(10);
 
   const flags = decodeFlags(flagsVal);
 
   let offset = 12;
-  
+
   // decode questions
   const { questions, cbq } = decodeQuestions(view, offset, QDCOUNT);
 
@@ -30,14 +30,10 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   // decode answers
   const { rrdata: answers, cbrr } = decodeRR(view, offset, ANCOUNT);
   offset = cbrr;
-  
+
   // decode authorities
   const { rrdata: authorities, cbrr: cbau } = decodeRR(view, offset, NSCOUNT);
   offset = cbau;
-
-  // decode additionals
-  const { rrdata: additionals, cbrr: cbad } = decodeRR(view, offset, ARCOUNT);
-  offset = cbad;
 
   return {
     id,
@@ -45,6 +41,6 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
     questions,
     answers,
     authorities,
-    additionals,
+    additionals: [],
   };
 }

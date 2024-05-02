@@ -9,7 +9,7 @@ const pk = encode({
     RA: 0
   },
   questions: [
-    { CLASS: 'IN', NAME: "www.nodejs.org", TYPE: "CNAME" }
+    { CLASS: 'IN', NAME: "dns.cloudflare.com", TYPE: "SOA" }
   ]
 });
 
@@ -19,17 +19,17 @@ const buf = dnsPacket.encode({
   flags: dnsPacket.RECURSION_DESIRED,
   questions: [{
     type: 'CNAME',
-    name: 'www.nodejs.org'
+    name: 'clients.l.google.com'
   }]
 })
 
 const server = createSocket('udp4');
 
-server.send(pk, 53, '1.1.1.1', (err) => {
+server.send(buf, 53, '1.1.1.1', (err) => {
   if (err) console.log(err.message);
 
   server.on('message', (msg, rinfo) => {
-    // console.log(dnsPacket.decode(msg));
+    console.log(msg);
     console.log(decode(msg).answers);
     console.log(decode(msg).authorities);
     server.close();

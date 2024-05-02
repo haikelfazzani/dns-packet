@@ -1,6 +1,4 @@
 import { DNSQuery } from "../types";
-import getOPCODE from "../utils/getOPCODE";
-import getQR from "../utils/getQR";
 import getRCODE from "../utils/getRCODE";
 import getRClass from "../utils/getRClass";
 import getRType from "../utils/getRType";
@@ -12,8 +10,8 @@ export default function formatQuery(packet: DNSQuery) {
   return {
     id: packet.id || 0,
     flags: {
-      QR: getQR(),
-      Opcode: getOPCODE(flags.Opcode || 'QUERY'),
+      QR: 0,
+      Opcode: 0,
       AA: flags.AA & 1,
       TC: flags.TC & 1,
       RD: flags.RD & 1,
