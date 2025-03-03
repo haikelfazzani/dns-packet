@@ -28,7 +28,7 @@ export default function decodeRR(view: DataView, offset: number, COUNT: number) 
     const RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
     offset += RDLENGTH;
 
-    rrdata.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), ttl, RDLENGTH, RDATA, NAME: name });
+    rrdata.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), TTL: ttl, RDLENGTH, RDATA, NAME: name });
   }
 
   return { rrdata, cbrr: offset }
