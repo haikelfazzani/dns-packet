@@ -1,6 +1,5 @@
 import { createSocket, } from 'dgram'
-import { encode, decode } from '../dist/index.mjs';
-import dnsPacket from 'dns-packet'
+import { encode, decode } from '../dist/index.js';
 
 const pk = encode({
   id: 153,
@@ -13,19 +12,10 @@ const pk = encode({
   ]
 });
 
-const buf = dnsPacket.encode({
-  type: 'query',
-  id: 1,
-  flags: dnsPacket.RECURSION_DESIRED,
-  questions: [{
-    type: 'CNAME',
-    name: 'clients.l.google.com'
-  }]
-})
 
 const server = createSocket('udp4');
 
-server.send(buf, 53, '1.1.1.1', (err) => {
+server.send(pk, 53, '1.1.1.1', (err) => {
   if (err) console.log(err.message);
 
   server.on('message', (msg, rinfo) => {

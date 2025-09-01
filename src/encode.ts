@@ -118,7 +118,7 @@ export default function encode(packet: DNSQuery): Uint8Array {
     throw new Error('DNS query must have at least one question');
   }
 
-  // **ASSUMED FIX**: Buffer size is now dynamic based on EDNS or a larger default.
+  // Buffer size is dynamic based on EDNS or a larger default.
   const bufferSize = query.edns ? query.edns.udpPayloadSize : 512;
   const buffer = new ArrayBuffer(bufferSize);
   const view = new DataView(buffer);
@@ -126,7 +126,6 @@ export default function encode(packet: DNSQuery): Uint8Array {
 
   view.setUint16(0, query.id, false);
 
-  // **ASSUMED FIX**: Flags are written correctly as a single 16-bit value.
   const flags = (query.flags.QR << 15) | (query.flags.Opcode << 11) | (query.flags.AA << 10) | (query.flags.TC << 9) | (query.flags.RD << 8) | (query.flags.RA << 7) | (query.flags.Z << 4) | query.flags.RCODE;
   view.setUint16(2, flags, false);
 
@@ -139,7 +138,6 @@ export default function encode(packet: DNSQuery): Uint8Array {
 
   let offset = 12;
 
-  // Encode all questions in the query
   for (const question of query.questions) {
     offset = encodeQuestion(question, view, offset, compressionMap);
   }
