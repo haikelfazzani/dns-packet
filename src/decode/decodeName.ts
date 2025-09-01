@@ -1,4 +1,4 @@
-export default function decodeName(view: DataView, offset: number, { mail = false } = {}) {
+export default function decodeName(view: DataView, offset: number) {
   const initialOffset = offset;
   let currentOffset = offset;
   const parts: string[] = [];
@@ -34,7 +34,7 @@ export default function decodeName(view: DataView, offset: number, { mail = fals
         throw new Error('Cannot decode name (pointer outside message boundary)');
       }
 
-      // RFC 1035: Pointers MUST point to a prior location
+      // Fix: Pointers MUST point to a prior location in the current name
       if (pointerValue >= initialOffset) {
         throw new Error('Cannot decode name (forward pointer not allowed)');
       }
@@ -75,9 +75,6 @@ export default function decodeName(view: DataView, offset: number, { mail = fals
         label += String.fromCharCode(charCode);
       }
 
-      if (mail) {
-        label = label.replace(/\./g, '\\.');
-      }
       parts.push(label);
       currentOffset += len;
     } else {

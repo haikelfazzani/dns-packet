@@ -24,14 +24,13 @@ export default function decodeRR(view: DataView, offset: number, COUNT: number) 
     offset += 2;
 
     // Special handling for EDNS(0) OPT records
-    if (rType === 41) { 
+    if (rType === 41) {
       edns = decodeOPT(view, rClass, ttl, RDLENGTH, offset);
     } else {
-      const RDATA = decodeRDATA(view, offset, RDLENGTH, rType);
+      const { data: RDATA, consumedBytes: rdataConsumedBytes } = decodeRDATA(view, offset, RDLENGTH, rType);
       rrdata.push({ CLASS: getRClass(rClass), TYPE: getRType(rType), TTL: ttl, RDLENGTH, RDATA, NAME: name });
+      offset += rdataConsumedBytes;
     }
-    
-    offset += RDLENGTH;
   }
 
   return { rrdata, edns, nextOffset: offset };

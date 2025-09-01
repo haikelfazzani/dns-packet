@@ -14,7 +14,8 @@ describe('DNS Packet Encoding and Decoding', () => {
   dnsServers.forEach(serverUrl => {
     describe(`Testing with DNS over HTTPS server: ${serverUrl}`, () => {
       it('should encode a DNS query and successfully decode the response for a standard A record lookup', async () => {
-        const queryPacket: DNSQuery = {
+
+        const encodedQuery = encode({
           flags: {
             RD: 1, // Recursion Desired
             Opcode: 'QUERY'
@@ -26,12 +27,8 @@ describe('DNS Packet Encoding and Decoding', () => {
               CLASS: 'IN'
             }
           ]
-        };
+        });
 
-        // 1. Encode the DNS query packet
-        const encodedQuery = encode(queryPacket);
-
-        // 2. Send the encoded query to the DNS over HTTPS server using Axios
         const response = await axios.post(serverUrl, encodedQuery, {
           headers: {
             'Content-Type': 'application/dns-message',
@@ -40,16 +37,10 @@ describe('DNS Packet Encoding and Decoding', () => {
           responseType: 'arraybuffer'
         });
 
-        // 3. Check if the response is valid
         expect(response.status).toBe(200);
         expect(response.headers['content-type']).toBe('application/dns-message');
 
-        const responseUint8Array = new Uint8Array(response.data);
-
-        // 4. Decode the DNS response packet
-        const decodedResponse: DNSResponse = decode(responseUint8Array);
-
-        // 5. Assertions on the decoded response
+        const decodedResponse: DNSResponse = decode(response.data);
         expect(decodedResponse.flags.QR).toBe('RESPONSE');
         expect(decodedResponse.questions[0].NAME).toBe('google.com');
       });
@@ -80,9 +71,7 @@ describe('DNS Packet Encoding and Decoding', () => {
         });
 
         expect(response.status).toBe(200);
-
-        const decodedResponse: DNSResponse = decode(new Uint8Array(response.data));
-
+        const decodedResponse: DNSResponse = decode(response.data);
         expect(decodedResponse.flags.QR).toBe('RESPONSE');
       });
     });

@@ -1,6 +1,6 @@
 {
   "name": "dnspacket-ts",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Node/Browser module for encoding and decoding DNS packet",
   "author": "Haikel Fazzani",
   "private": false,

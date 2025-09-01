@@ -1,8 +1,9 @@
 import { getRType } from "../helpers";
 import decodeName from "./decodeName";
 
-export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number): any {
+export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number): { data: any, consumedBytes: number } {
   const rTypeStr: string = getRType(rType);
+  let consumedBytes = RDLENGTH;
 
   if (rTypeStr === 'A') {
     if (RDLENGTH !== 4) {
@@ -12,7 +13,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     for (let i = 0; i < 4; i++) {
       parts.push(view.getUint8(offset + i).toString());
     }
-    return parts.join('.');
+    return { data: parts.join('.'), consumedBytes: RDLENGTH };
   }
 
   if (rTypeStr === 'AAAA') {
@@ -24,14 +25,10 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
       const value = view.getUint16(offset + i);
       parts.push(value.toString(16).padStart(4, '0'));
     }
-    
-    // Properly compress IPv6 address
-    let result = parts.join(':');
-    
-    // Find longest sequence of zeros
+
     let bestStart = -1, bestLength = 0;
     let currentStart = -1, currentLength = 0;
-    
+
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === '0000') {
         if (currentStart === -1) currentStart = i;
@@ -45,25 +42,21 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
         currentLength = 0;
       }
     }
-    
+
     if (currentLength > bestLength) {
       bestStart = currentStart;
       bestLength = currentLength;
     }
-    
+
+    let result = parts.join(':');
     if (bestLength >= 2) {
       const before = parts.slice(0, bestStart);
       const after = parts.slice(bestStart + bestLength);
-      
-      let compressed = before.join(':');
-      if (compressed) compressed += '::';
-      else compressed = '::';
-      if (after.length) compressed += after.join(':');
-      
-      result = compressed;
+      result = `${before.join(':')}::${after.join(':')}`;
     }
-    
-    return result.replace(/:0+/g, ':').replace(/^0+/, '').replace(/::+/, '::');
+
+    result = result.replace(/::+/g, '::'); // Clean up potential multiple '::'
+    return { data: result, consumedBytes: RDLENGTH };
   }
 
   if (rTypeStr === 'TXT') {
@@ -85,12 +78,13 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
       i += len;
       texts.push(text);
     }
-    return texts;
+    return { data: texts, consumedBytes: RDLENGTH };
   }
 
   if (['CNAME', 'NS', 'PTR'].includes(rTypeStr)) {
     try {
-      return decodeName(view, offset).name;
+      const { name, consumedBytes: nameBytes } = decodeName(view, offset);
+      return { data: name, consumedBytes: nameBytes };
     } catch (error) {
       throw new Error(`Failed to decode ${rTypeStr} record: ${error.message}`);
     }
@@ -102,8 +96,9 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     }
     const PREFERENCE = view.getUint16(offset);
     try {
-      const EXCHANGE = decodeName(view, offset + 2).name;
-      return { PREFERENCE, EXCHANGE };
+      const { name, consumedBytes: nameBytes } = decodeName(view, offset + 2);
+      consumedBytes = 2 + nameBytes;
+      return { data: { PREFERENCE, EXCHANGE: name }, consumedBytes };
     } catch (error) {
       throw new Error(`Failed to decode MX exchange: ${error.message}`);
     }
@@ -113,7 +108,7 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     if (RDLENGTH < 20) {
       throw new Error(`SOA record too short: ${RDLENGTH} < 20`);
     }
-    
+
     try {
       const MNAME = decodeName(view, offset);
       let currentOffset = offset + MNAME.consumedBytes;
@@ -124,14 +119,18 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
         throw new Error('SOA record truncated');
       }
 
+      consumedBytes = (currentOffset + 20) - offset;
       return {
-        MNAME: MNAME.name,
-        RNAME: RNAME.name,
-        SERIAL: view.getUint32(currentOffset),
-        REFRESH: view.getUint32(currentOffset + 4),
-        RETRY: view.getUint32(currentOffset + 8),
-        EXPIRE: view.getUint32(currentOffset + 12),
-        MINIMUM: view.getUint32(currentOffset + 16),
+        data: {
+          MNAME: MNAME.name,
+          RNAME: RNAME.name,
+          SERIAL: view.getUint32(currentOffset),
+          REFRESH: view.getUint32(currentOffset + 4),
+          RETRY: view.getUint32(currentOffset + 8),
+          EXPIRE: view.getUint32(currentOffset + 12),
+          MINIMUM: view.getUint32(currentOffset + 16),
+        },
+        consumedBytes,
       };
     } catch (error) {
       throw new Error(`Failed to decode SOA record: ${error.message}`);
@@ -142,14 +141,18 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
     if (RDLENGTH < 7) {
       throw new Error(`SRV record too short: ${RDLENGTH} < 7`);
     }
-    
+
     try {
-      const TARGET = decodeName(view, offset + 6).name;
+      const { name: TARGET, consumedBytes: nameBytes } = decodeName(view, offset + 6);
+      consumedBytes = 6 + nameBytes;
       return {
-        PRIORITY: view.getUint16(offset),
-        WEIGHT: view.getUint16(offset + 2),
-        PORT: view.getUint16(offset + 4),
-        TARGET
+        data: {
+          PRIORITY: view.getUint16(offset),
+          WEIGHT: view.getUint16(offset + 2),
+          PORT: view.getUint16(offset + 4),
+          TARGET
+        },
+        consumedBytes,
       };
     } catch (error) {
       throw new Error(`Failed to decode SRV target: ${error.message}`);
@@ -160,6 +163,6 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
   if (offset + RDLENGTH > view.byteLength) {
     throw new Error(`Record data exceeds buffer: ${offset + RDLENGTH} > ${view.byteLength}`);
   }
-  
-  return new Uint8Array(view.buffer.slice(offset, offset + RDLENGTH));
+
+  return { data: new Uint8Array(view.buffer.slice(offset, offset + RDLENGTH)), consumedBytes: RDLENGTH };
 }

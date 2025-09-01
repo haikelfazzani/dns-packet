@@ -1,4 +1,4 @@
-import { DNSResponse, EDNS } from "../types";
+import { DNSResponse } from "../types";
 import decodeRR from "./decodeRR";
 import decodeQuestions from "./decodeQuestions";
 import decodeFlags from "./decodeFlags";
@@ -21,23 +21,19 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   const { questions, nextOffset: questionOffset } = decodeQuestions(view, offset, QDCOUNT);
   offset = questionOffset;
 
-  let edns: EDNS | undefined = undefined;
-
   const answerResult = decodeRR(view, offset, ANCOUNT);
   const answers = answerResult.rrdata;
-  if (answerResult.edns) edns = answerResult.edns; // Capture EDNS if present
   offset = answerResult.nextOffset;
 
   const authorityResult = decodeRR(view, offset, NSCOUNT);
   const authorities = authorityResult.rrdata;
-  if (authorityResult.edns) edns = authorityResult.edns; // Capture EDNS if present
   offset = authorityResult.nextOffset;
-  
+
   const additionalResult = decodeRR(view, offset, ARCOUNT);
   const additionals = additionalResult.rrdata;
-  if (additionalResult.edns) edns = additionalResult.edns; // Capture EDNS if present
+  const edns = additionalResult.edns; // Only check for EDNS in the additional section
   offset = additionalResult.nextOffset;
-  
+
   return {
     id,
     flags,

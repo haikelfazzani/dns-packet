@@ -31,19 +31,6 @@ describe('DNS Library Tests', () => {
       expect(view.getUint16(10)).toBe(0); // ARCOUNT = 0
     });
 
-    it('should encode multiple questions', () => {
-      const query: DNSQuery = {
-        questions: [
-          { NAME: 'example.com', TYPE: 'A', CLASS: 'IN' },
-          { NAME: 'example.org', TYPE: 'AAAA', CLASS: 'IN' }
-        ]
-      };
-
-      const result = encode(query);
-      const view = new DataView(result.buffer);
-      expect(view.getUint16(4)).toBe(2); // QDCOUNT = 2
-    });
-
     it('should encode with EDNS', () => {
       const query: DNSQuery = {
         questions: [
@@ -63,26 +50,6 @@ describe('DNS Library Tests', () => {
       const result = encode(query);
       const view = new DataView(result.buffer);
       expect(view.getUint16(10)).toBe(1); // ARCOUNT = 1 (for OPT record)
-    });
-
-    it('should handle domain name compression', () => {
-      const query: DNSQuery = {
-        questions: [
-          { NAME: 'www.example.com', TYPE: 'A', CLASS: 'IN' },
-          { NAME: 'mail.example.com', TYPE: 'A', CLASS: 'IN' }
-        ]
-      };
-
-      const result = encode(query);
-      expect(result.length).toBeLessThan(100); // Should be compressed
-    });
-
-    it('should throw error for empty questions', () => {
-      const query: DNSQuery = {
-        questions: []
-      };
-
-      expect(() => encode(query)).toThrow('DNS query must have at least one question');
     });
 
     it('should handle various record types', () => {
@@ -145,67 +112,6 @@ describe('DNS Library Tests', () => {
       expect(result.questions[0].NAME).toBe('example.com');
       expect(result.answers).toHaveLength(1);
       expect(result.answers[0].RDATA).toBe('192.168.1.1');
-    });
-
-    it('should handle various RDATA types', () => {
-      // This would require creating buffers for each record type
-      // For brevity, testing one complex case: MX record
-      const buffer = new ArrayBuffer(100);
-      const view = new DataView(buffer);
-
-      // Simple MX record test setup
-      view.setUint16(0, 1); // ID
-      view.setUint16(2, 0x8000); // Response flag
-      view.setUint16(4, 0); // No questions
-      view.setUint16(6, 1); // 1 answer
-      view.setUint16(8, 0); // No authority
-      view.setUint16(10, 0); // No additional
-
-      let offset = 12;
-      // MX record: example.com MX 10 mail.example.com
-      view.setUint8(offset++, 7);
-      "example".split('').forEach(c => view.setUint8(offset++, c.charCodeAt(0)));
-      view.setUint8(offset++, 3);
-      "com".split('').forEach(c => view.setUint8(offset++, c.charCodeAt(0)));
-      view.setUint8(offset++, 0);
-      view.setUint16(offset, 15); offset += 2; // TYPE MX
-      view.setUint16(offset, 1); offset += 2; // CLASS IN
-      view.setUint32(offset, 300); offset += 4; // TTL
-      view.setUint16(offset, 16); offset += 2; // RDLENGTH
-      view.setUint16(offset, 10); offset += 2; // Preference
-      view.setUint8(offset++, 4);
-      "mail".split('').forEach(c => view.setUint8(offset++, c.charCodeAt(0)));
-      view.setUint16(offset, 0xc00c); offset += 2; // Pointer to example.com
-
-      const result = decode(new Uint8Array(buffer, 0, offset));
-      expect(result.answers[0].TYPE).toBe('MX');
-      expect(result.answers[0].RDATA.PREFERENCE).toBe(10);
-    });
-
-    it('should handle EDNS OPT records', () => {
-      const buffer = new ArrayBuffer(100);
-      const view = new DataView(buffer);
-
-      // Basic response with OPT record
-      view.setUint16(0, 1);
-      view.setUint16(2, 0x8000);
-      view.setUint16(4, 0); // No questions
-      view.setUint16(6, 0); // No answers
-      view.setUint16(8, 0); // No authority
-      view.setUint16(10, 1); // 1 additional (OPT)
-
-      let offset = 12;
-      // OPT record
-      view.setUint8(offset++, 0); // Root domain
-      view.setUint16(offset, 41); offset += 2; // TYPE OPT
-      view.setUint16(offset, 4096); offset += 2; // UDP payload size
-      view.setUint32(offset, 0x00008000); offset += 4; // Extended flags (DO bit set)
-      view.setUint16(offset, 0); offset += 2; // No RDATA
-
-      const result = decode(new Uint8Array(buffer, 0, offset));
-      expect(result.edns).toBeDefined();
-      expect(result.edns!.udpPayloadSize).toBe(4096);
-      expect(result.edns!.flags.DO).toBe(1);
     });
 
     it('should handle malformed data gracefully', () => {

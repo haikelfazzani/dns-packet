@@ -3,6 +3,11 @@ import { getRCODE, getRClass, getRType } from "./helpers";
 
 function encodeName(name: string, view: DataView, offset: number, compressionMap: Map<string, number>): number {
   const labels = name.split('.');
+  const totalNameLength = name.length + 1; // name length + null terminator
+
+  if (totalNameLength > 255) {
+    throw new Error('Encoding name exceeds RFC 2181 limit of 255 octets');
+  }
 
   for (let i = 0; i < labels.length; i++) {
     const suffix = labels.slice(i).join('.');
@@ -114,8 +119,8 @@ function formatQuery(packet: DNSQuery) {
 
 export default function encode(packet: DNSQuery): Uint8Array {
   const query = formatQuery(packet);
-  if (!query.questions || query.questions.length === 0) {
-    throw new Error('DNS query must have at least one question');
+  if (!query.questions || query.questions.length !== 1) {
+    throw new Error('This encoder supports only a single question per query.');
   }
 
   // Buffer size is dynamic based on EDNS or a larger default.
@@ -129,7 +134,7 @@ export default function encode(packet: DNSQuery): Uint8Array {
   const flags = (query.flags.QR << 15) | (query.flags.Opcode << 11) | (query.flags.AA << 10) | (query.flags.TC << 9) | (query.flags.RD << 8) | (query.flags.RA << 7) | (query.flags.Z << 4) | query.flags.RCODE;
   view.setUint16(2, flags, false);
 
-  view.setUint16(4, query.questions.length, false); // QDCOUNT is now the actual number of questions
+  view.setUint16(4, 1, false); // QDCOUNT is now fixed to 1
   view.setUint16(6, 0, false); // ANCOUNT
   view.setUint16(8, 0, false); // NSCOUNT
 
@@ -138,9 +143,8 @@ export default function encode(packet: DNSQuery): Uint8Array {
 
   let offset = 12;
 
-  for (const question of query.questions) {
-    offset = encodeQuestion(question, view, offset, compressionMap);
-  }
+  // Since we only expect one question, we can access it directly.
+  offset = encodeQuestion(query.questions[0], view, offset, compressionMap);
 
   if (hasEdns) {
     offset = encodeOPT(query.edns!, view, offset);
