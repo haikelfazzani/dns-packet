@@ -13,7 +13,7 @@
     "dev": "vite build --minify false",
     "build": "vite build",
     "clean": "rm -rf dist",
-    "test:helpers": "jest tests/helpers.test.ts",
+    "test:doh": "jest tests/doh.test.ts",
     "test": "jest tests/index.test.ts",
     "prepublishOnly": "npm run clean && npm run build && npm run test"
   },

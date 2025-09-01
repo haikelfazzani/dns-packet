@@ -36,7 +36,7 @@ function encodeName(name: string, view: DataView, offset: number, compressionMap
     }
   }
 
-  view.setUint8(currentOffset++, 0);
+  view.setUint8(currentOffset++, 0); // Null terminator
   return currentOffset;
 }
 
