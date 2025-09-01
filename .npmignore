@@ -4,35 +4,29 @@ logs
 *.txt
 .gitignore
 npm-debug.log*
-# Dependencies
+
+
 node_modules/
-src
-tests
-build
-v2.txt
-v2.js
-temp
+src/
+build/
+docs/
+temp/
+tests/
+
 rollup.config.mjs
 tsconfig.json
 tsconfig.node.json
-# Coverage
+jest.config.ts
+vite.config.ts
+index.html
+
 coverage
 
-# Transpiled files
 build/
-
-# VS Code
 .vscode
 !.vscode/tasks.js
-
-# JetBrains IDEs
 .idea/
-
-# Optional npm cache directory
 .npm
-
-# Optional eslint cache
 .eslintcache
-
-# Misc
 .DS_Store
+.cache

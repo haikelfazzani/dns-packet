@@ -1,4 +1,4 @@
-import encode from './encode/index'
+import encode from './encode'
 import decode from './decode/index';
 
 export {

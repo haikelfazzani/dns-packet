@@ -8,8 +8,10 @@ package-lock.json
 node_modules/
 build
 dist
-v2.txt
-v2.js
+steps.md
+notes
+v.js
+
 # Coverage
 coverage
 temp

@@ -1,31 +1,38 @@
 {
   "name": "dnspacket-ts",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Node/Browser module for encoding and decoding DNS packet",
-  "type": "module",
   "author": "Haikel Fazzani",
-  "main": "dist/index.cjs",
-  "browser": "dist/index.js",
-  "module": "dist/index.mjs",
-  "typings": "dist/index.d.ts",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.umd.js",
+  "types": "./dist/types/index.d.ts",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "test": "node tests/index.js"
+    "dev": "vite build --minify false",
+    "build": "vite build",
+    "clean": "rm -rf dist",
+    "test:helpers": "jest tests/helpers.test.ts",
+    "test": "jest tests/index.test.ts",
+    "prepublishOnly": "npm run clean && npm run build && npm run test"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
-    "@types/dns-packet": "^5.6.5",
-    "@types/node": "~20",
-    "axios": "^1.6.7",
-    "dns-packet": "^5.6.1",
-    "esbuild": "^0.20.2",
-    "rollup": "^4.13.2",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-esbuild": "^6.1.1",
-    "rollup-terser": "^1.0.3",
-    "typescript": "^5.2.2"
+    "@jest/globals": "^30.0.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.0",
+    "axios": "^1.11.0",
+    "dts-bundle-generator": "^9.5.1",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/haikelfazzani/dns-packet"

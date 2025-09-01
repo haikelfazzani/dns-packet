@@ -1,4 +1,4 @@
-import { encode, decode } from '../dist/index.mjs';
+import { encode, decode } from '../dist/index.js';
 import axios from 'axios';
 
 const data = encode({

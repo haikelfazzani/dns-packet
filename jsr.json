@@ -1,0 +1,10 @@
+{
+  "name": "dnspacket-ts",
+  "version": "1.0.10",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "publish": {
+    "include": ["./*.md", "./dist/index.js", "./dist/types/index.d.ts"]
+  }
+}

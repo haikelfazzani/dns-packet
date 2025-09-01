@@ -1,10 +1,9 @@
-import { DNSResponse } from "../types";
+import { DNSResponse, EDNS } from "../types";
 import decodeRR from "./decodeRR";
 import decodeQuestions from "./decodeQuestions";
 import decodeFlags from "./decodeFlags";
 
 export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSResponse {
-
   const data = buffer instanceof Buffer ? new Uint8Array(buffer).buffer : buffer instanceof ArrayBuffer ? buffer : buffer.buffer;
   const view = new DataView(data);
 
@@ -14,33 +13,38 @@ export default function decode(buffer: ArrayBuffer | Uint8Array | Buffer): DNSRe
   const QDCOUNT = view.getUint16(4);
   const ANCOUNT = view.getUint16(6);
   const NSCOUNT = view.getUint16(8);
-  // const ARCOUNT = view.getUint16(10);
+  const ARCOUNT = view.getUint16(10);
 
   const flags = decodeFlags(flagsVal);
-
   let offset = 12;
 
-  // decode questions
-  const { questions, cbq } = decodeQuestions(view, offset, QDCOUNT);
+  const { questions, nextOffset: questionOffset } = decodeQuestions(view, offset, QDCOUNT);
+  offset = questionOffset;
 
-  if (flags.QR === 'QUERY') return { id, flags, questions, answers: [], authorities: [], additionals: [] }
+  let edns: EDNS | undefined = undefined;
 
-  offset = cbq;
+  const answerResult = decodeRR(view, offset, ANCOUNT);
+  const answers = answerResult.rrdata;
+  if (answerResult.edns) edns = answerResult.edns; // Capture EDNS if present
+  offset = answerResult.nextOffset;
 
-  // decode answers
-  const { rrdata: answers, cbrr } = decodeRR(view, offset, ANCOUNT);
-  offset = cbrr;
-
-  // decode authorities
-  const { rrdata: authorities, cbrr: cbau } = decodeRR(view, offset, NSCOUNT);
-  offset = cbau;
-
+  const authorityResult = decodeRR(view, offset, NSCOUNT);
+  const authorities = authorityResult.rrdata;
+  if (authorityResult.edns) edns = authorityResult.edns; // Capture EDNS if present
+  offset = authorityResult.nextOffset;
+  
+  const additionalResult = decodeRR(view, offset, ARCOUNT);
+  const additionals = additionalResult.rrdata;
+  if (additionalResult.edns) edns = additionalResult.edns; // Capture EDNS if present
+  offset = additionalResult.nextOffset;
+  
   return {
     id,
     flags,
     questions,
     answers,
     authorities,
-    additionals: [],
+    additionals,
+    edns: edns || undefined,
   };
 }

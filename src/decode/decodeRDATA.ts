@@ -1,172 +1,165 @@
-import getRType from "../utils/getRType";
+import { getRType } from "../helpers";
 import decodeName from "./decodeName";
 
-export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number) {
-  let RDATA = '';
+export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: number, rType: number): any {
   const rTypeStr: string = getRType(rType);
 
   if (rTypeStr === 'A') {
-    for (let i = 0; i < RDLENGTH; i++) {
-      RDATA += (i === 0 ? '' : '.') + view.getUint8(offset + i)
+    if (RDLENGTH !== 4) {
+      throw new Error(`Invalid A record length: ${RDLENGTH}, expected 4`);
     }
-    return RDATA
+    const parts = [];
+    for (let i = 0; i < 4; i++) {
+      parts.push(view.getUint8(offset + i).toString());
+    }
+    return parts.join('.');
   }
 
   if (rTypeStr === 'AAAA') {
-    for (let i = 0; i < RDLENGTH; i += 2) {
-      RDATA += (i === 0 ? '' : ':') + view.getUint16(offset + i).toString(16)
+    if (RDLENGTH !== 16) {
+      throw new Error(`Invalid AAAA record length: ${RDLENGTH}, expected 16`);
     }
-    return RDATA
+    const parts = [];
+    for (let i = 0; i < 16; i += 2) {
+      const value = view.getUint16(offset + i);
+      parts.push(value.toString(16).padStart(4, '0'));
+    }
+    
+    // Properly compress IPv6 address
+    let result = parts.join(':');
+    
+    // Find longest sequence of zeros
+    let bestStart = -1, bestLength = 0;
+    let currentStart = -1, currentLength = 0;
+    
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === '0000') {
+        if (currentStart === -1) currentStart = i;
+        currentLength++;
+      } else {
+        if (currentLength > bestLength) {
+          bestStart = currentStart;
+          bestLength = currentLength;
+        }
+        currentStart = -1;
+        currentLength = 0;
+      }
+    }
+    
+    if (currentLength > bestLength) {
+      bestStart = currentStart;
+      bestLength = currentLength;
+    }
+    
+    if (bestLength >= 2) {
+      const before = parts.slice(0, bestStart);
+      const after = parts.slice(bestStart + bestLength);
+      
+      let compressed = before.join(':');
+      if (compressed) compressed += '::';
+      else compressed = '::';
+      if (after.length) compressed += after.join(':');
+      
+      result = compressed;
+    }
+    
+    return result.replace(/:0+/g, ':').replace(/^0+/, '').replace(/::+/, '::');
   }
 
   if (rTypeStr === 'TXT') {
-    for (let i = 1; i < RDLENGTH; i++) {
-      RDATA += String.fromCharCode(view.getUint8(offset + i))
+    const texts = [];
+    let i = 0;
+    while (i < RDLENGTH) {
+      if (i >= RDLENGTH) {
+        throw new Error('TXT record truncated');
+      }
+      const len = view.getUint8(offset + i);
+      i += 1;
+      if (i + len > RDLENGTH) {
+        throw new Error('TXT record string exceeds record length');
+      }
+      let text = '';
+      for (let j = 0; j < len; j++) {
+        text += String.fromCharCode(view.getUint8(offset + i + j));
+      }
+      i += len;
+      texts.push(text);
     }
-    return RDATA
+    return texts;
   }
 
-  if (rTypeStr.startsWith('UNKNOWN') || ['CNAME', 'NS', 'PTR', 'NULL', 'MR', 'MG', 'MF', 'MD', 'MB'].includes(rTypeStr)) {
-    RDATA = decodeName(view, offset).name;
-    return RDATA
-  }
-
-  if (rTypeStr === 'WKS') {
-    /**
-     * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                    ADDRESS                    |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |       PROTOCOL        |                       |
-        +--+--+--+--+--+--+--+--+                       |
-        |                                               |
-        /                   <BIT MAP>                   /
-        /                                               /
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    ADDRESS         An 32 bit Internet address
-    PROTOCOL        An 8 bit IP protocol number
-    <BIT MAP>       A variable length bit map.  The bit map must be a multiple of 8 bits long.
-     */
-
-    return {
-      ADDRESS: view.getUint32(offset),
-      PROTOCOL: view.getUint8(offset + 4),
-      BIT_MAP: view.getUint16(offset + 1)
+  if (['CNAME', 'NS', 'PTR'].includes(rTypeStr)) {
+    try {
+      return decodeName(view, offset).name;
+    } catch (error) {
+      throw new Error(`Failed to decode ${rTypeStr} record: ${error.message}`);
     }
   }
 
   if (rTypeStr === 'MX') {
-    /**
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |     PREFERENCE     16 bit integer              |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    /     EXCHANGE       A <domain-name>             /
-    /                                               /
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-     */
-    const PREFERENCE = view.getUint16(offset);
-    const EXCHANGE = decodeName(view, offset + 2);
-
-    return {
-      PREFERENCE,
-      EXCHANGE: EXCHANGE.name
+    if (RDLENGTH < 3) {
+      throw new Error(`MX record too short: ${RDLENGTH} < 3`);
     }
-  }
-
-  if (rTypeStr === 'HINFO') {
-    /**
-     * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    /                      CPU                      /
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    /                       OS                      /
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-
-    CPU   A <character-string> which specifies the CPU type.
-    OS    A <character-string> which specifies the operating  system type.
-     */
-    const CPU = decodeName(view, offset);
-    offset += CPU.consumedBytes
-    const OS = decodeName(view, offset);
-
-    return {
-      CPU: CPU.name,
-      OS: OS.name
+    const PREFERENCE = view.getUint16(offset);
+    try {
+      const EXCHANGE = decodeName(view, offset + 2).name;
+      return { PREFERENCE, EXCHANGE };
+    } catch (error) {
+      throw new Error(`Failed to decode MX exchange: ${error.message}`);
     }
   }
 
   if (rTypeStr === 'SOA') {
+    if (RDLENGTH < 20) {
+      throw new Error(`SOA record too short: ${RDLENGTH} < 20`);
+    }
+    
+    try {
+      const MNAME = decodeName(view, offset);
+      let currentOffset = offset + MNAME.consumedBytes;
+      const RNAME = decodeName(view, currentOffset);
+      currentOffset += RNAME.consumedBytes;
 
-    const MNAME = decodeName(view, offset);
-    offset += MNAME.consumedBytes
-    const RNAME = decodeName(view, offset);
-    offset += RNAME.consumedBytes;
+      if (currentOffset + 20 > offset + RDLENGTH) {
+        throw new Error('SOA record truncated');
+      }
 
-    const SERIAL = view.getUint32(offset);
-    offset += 4;
-    const REFRESH = view.getUint32(offset)
-    offset += 4;
-
-    const RETRY = view.getUint32(offset)
-    offset += 4;
-
-    const EXPIRE = view.getUint32(offset)
-    offset += 4;
-
-    const MINIMUM = view.getUint32(offset);
-
-
-    /**
-     * +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    /                     MNAME                     /
-    /                                               /
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    /                     RNAME                     /
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    SERIAL                     |
-    |                                               |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    REFRESH                    |
-    |                                               |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                     RETRY                     |
-    |                                               |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    EXPIRE                     |
-    |                                               |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    MINIMUM                    |
-    |                                               |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-     */
-    return {
-      MNAME: MNAME.name,
-      RNAME: RNAME.name,
-      SERIAL,
-      REFRESH,
-      RETRY,
-      EXPIRE,
-      MINIMUM
+      return {
+        MNAME: MNAME.name,
+        RNAME: RNAME.name,
+        SERIAL: view.getUint32(currentOffset),
+        REFRESH: view.getUint32(currentOffset + 4),
+        RETRY: view.getUint32(currentOffset + 8),
+        EXPIRE: view.getUint32(currentOffset + 12),
+        MINIMUM: view.getUint32(currentOffset + 16),
+      };
+    } catch (error) {
+      throw new Error(`Failed to decode SOA record: ${error.message}`);
     }
   }
 
   if (rTypeStr === 'SRV') {
-    const PRIORITY = view.getUint16(offset)
-    offset += 2
-
-    const WEIGHT = view.getUint16(offset)
-    offset += 2
-
-    const PORT = view.getUint16(offset)
-    offset += 2
-
-    const TARGET = decodeName(view, offset).name
-
-    return {
-      PRIORITY,
-      WEIGHT,
-      PORT,
-      TARGET
+    if (RDLENGTH < 7) {
+      throw new Error(`SRV record too short: ${RDLENGTH} < 7`);
+    }
+    
+    try {
+      const TARGET = decodeName(view, offset + 6).name;
+      return {
+        PRIORITY: view.getUint16(offset),
+        WEIGHT: view.getUint16(offset + 2),
+        PORT: view.getUint16(offset + 4),
+        TARGET
+      };
+    } catch (error) {
+      throw new Error(`Failed to decode SRV target: ${error.message}`);
     }
   }
 
-  return view.buffer.slice(offset)
+  // For unknown record types, return raw data
+  if (offset + RDLENGTH > view.byteLength) {
+    throw new Error(`Record data exceeds buffer: ${offset + RDLENGTH} > ${view.byteLength}`);
+  }
+  
+  return new Uint8Array(view.buffer.slice(offset, offset + RDLENGTH));
 }

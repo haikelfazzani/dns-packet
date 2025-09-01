@@ -1,5 +1,4 @@
-import getQR from "../utils/getQR";
-import getRCODE from "../utils/getRCODE";
+import { getRCODE, getQR } from "../helpers";
 
 export default function decodeFlags(flagsVal: number) {
   return {

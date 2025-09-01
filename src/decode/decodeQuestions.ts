@@ -1,6 +1,5 @@
-import getRClass from "../utils/getRClass";
-import getRType from "../utils/getRType";
 import decodeName from "./decodeName";
+import { getRType, getRClass } from "../helpers";
 
 export default function decodeQuestions(view: DataView, offset: number, QDCOUNT: number) {
   const questions = [];
@@ -17,5 +16,5 @@ export default function decodeQuestions(view: DataView, offset: number, QDCOUNT:
     questions.push({ CLASS: getRClass(rClass), NAME: name, TYPE: getRType(rType) });
   }
 
-  return { questions, cbq: offset }
+  return { questions, nextOffset: offset }
 }
