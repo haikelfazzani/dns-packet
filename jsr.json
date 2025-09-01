@@ -1,6 +1,6 @@
 {
   "name": "dnspacket-ts",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "exports": {
     ".": "./dist/index.js"
   },
