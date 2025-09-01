@@ -8,7 +8,7 @@ const pk = encode({
     RA: 0
   },
   questions: [
-    { CLASS: 'IN', NAME: "dns.cloudflare.com", TYPE: "SOA" }
+    { CLASS: 'IN', NAME: "dns.cloudflare.com", TYPE: "TXT" }
   ]
 });
 

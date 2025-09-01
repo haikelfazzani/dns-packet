@@ -34,10 +34,10 @@ describe('DNS Library Tests', () => {
     it('should encode with EDNS', () => {
       const query: DNSQuery = {
         questions: [
-          { NAME: 'example.com', TYPE: 'A', CLASS: 'IN' }
+          { NAME: 'dnssec-test.sidnlabs.nl', TYPE: 'A', CLASS: 'IN' }
         ],
         edns: {
-          udpPayloadSize: 4096,
+          udpPayloadSize: 512,
           extendedRCODE: 0,
           version: 0,
           flags: { DO: 1 },

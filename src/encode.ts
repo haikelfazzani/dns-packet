@@ -1,5 +1,5 @@
 import { DNSQuery, EDNS } from "./types";
-import { getRCODE, getRClass, getRType } from "./helpers";
+import { getRClass, getRType } from "./helpers";
 
 function encodeName(name: string, view: DataView, offset: number, compressionMap: Map<string, number>): number {
   const labels = name.split('.');
@@ -107,8 +107,8 @@ function formatQuery(packet: DNSQuery) {
 
   return {
     id: packet.id || Math.floor(Math.random() * 65535),
-    flags: { QR: 0, Opcode: 0, AA: 0, TC: 0, RD: rd, RA: 0, Z: 0, RCODE: getRCODE() },
-    questions: packet.questions.map(q => ({ // Process all questions
+    flags: { QR: 0, Opcode: 0, AA: 0, TC: 0, RD: rd, RA: 0, Z: 0, RCODE: 0 }, // RCODE should always be 0 for a query
+    questions: packet.questions.map(q => ({
       CLASS: getRClass(q.CLASS),
       NAME: q.NAME,
       TYPE: getRType(q.TYPE)

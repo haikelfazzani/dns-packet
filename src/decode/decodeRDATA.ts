@@ -1,3 +1,4 @@
+import { textDecoder } from "../constants";
 import { getRType } from "../helpers";
 import decodeName from "./decodeName";
 
@@ -71,12 +72,10 @@ export default function decodeRDATA(view: DataView, offset: number, RDLENGTH: nu
       if (i + len > RDLENGTH) {
         throw new Error('TXT record string exceeds record length');
       }
-      let text = '';
-      for (let j = 0; j < len; j++) {
-        text += String.fromCharCode(view.getUint8(offset + i + j));
-      }
+
+      const textBytes = new Uint8Array(view.buffer, offset + i, len);
+      texts.push(textDecoder.decode(textBytes));
       i += len;
-      texts.push(text);
     }
     return { data: texts, consumedBytes: RDLENGTH };
   }

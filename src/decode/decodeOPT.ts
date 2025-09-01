@@ -20,9 +20,9 @@ export default function decodeOPT(view: DataView, classVal: number, ttlVal: numb
       throw new Error("Malformed EDNS option header: not enough bytes left.");
     }
 
-    const optionCode = view.getUint16(offset);
+    const optionCode = view.getUint16(offset, true);
     offset += 2;
-    const optionLength = view.getUint16(offset);
+    const optionLength = view.getUint16(offset, true);
     offset += 2;
 
     // Check if there are enough bytes for the option data
